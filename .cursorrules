@@ -1,0 +1,68 @@
+# Payslip System POC Development
+
+## Task Overview
+Building a payroll system POC using Django that supports:
+- Employee management
+- Payroll processing
+- Loan management with automatic deductions
+- Payslip generation
+- Role-based access control
+
+## Tech Stack
+- Django 4.2+
+- SQLite (development) / PostgreSQL (production)
+- Django-allauth (authentication)
+- Bootstrap 5 (UI)
+- ReportLab/xhtml2pdf (PDF generation) - Replaced WeasyPrint due to Windows compatibility issues
+- Celery (for scheduled tasks)
+
+## Progress Tracking
+[X] Create project plan
+[X] Project setup with Django
+[X] Core models implementation (Employee, Payroll, Loan)
+[X] User interface development for employee management
+[X] Lending module implementation
+[X] Security and permissions
+[X] PDF generation integration
+[X] Payroll processing workflow implementation
+[ ] Automated tasks setup
+[ ] Testing and deployment setup
+
+## Lessons
+- Using Django for modern project structure
+- Implementing role-based access control
+- Tracking financial transactions with proper audit trails
+- On Windows, use ReportLab or xhtml2pdf instead of WeasyPrint for easier setup and PDF generation
+- For Django projects, always check dependencies compatibility with the target deployment OS
+- When faced with dependency issues, look for alternative libraries that provide similar functionality
+- Document any changes to project dependencies in requirements.txt
+- Maintain consistency between model class names and their corresponding form class names
+- Always ensure admin.py classes reference actual fields that exist in your models
+- Use SQLite for development if there are issues with PostgreSQL setup
+- When using django-allauth in development, set EMAIL_BACKEND to console backend and use 'optional' for ACCOUNT_EMAIL_VERIFICATION
+
+## Scratchpad
+### Current Step: Payroll Processing Workflow Implementation - COMPLETED
+1. ✅ Update payroll URLs to include process payroll view
+2. ✅ Create process_payroll.html template
+3. ✅ Create payroll_list.html template
+4. ✅ Create payroll_detail.html template
+5. ✅ Create payroll_form.html template
+6. ✅ Create payroll_confirm_delete.html template
+7. ✅ Implement entry management views (add_payroll_entry, delete_payroll_entry)
+8. ✅ Update payroll URLs to include entry management views
+
+### Next Steps:
+1. [ ] Implement automated tasks with Celery
+    - [ ] Setup Celery configuration
+    - [ ] Create recurring payroll processing task
+    - [ ] Implement notification system for payroll approvals
+    - [ ] Configure scheduled reports generation
+2. [ ] Write tests for core functionality
+    - [ ] Unit tests for models
+    - [ ] Integration tests for payroll processing
+    - [ ] UI tests for critical workflows
+3. [ ] Set up deployment configuration
+    - [ ] Configure production settings
+    - [ ] Setup database migration scripts
+    - [ ] Document deployment process 

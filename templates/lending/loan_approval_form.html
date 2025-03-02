@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Approve Loan{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h2 mb-0">Loan Approval</h1>
+            <p class="text-muted">{{ loan.loan_id }}</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'loan_detail' loan.id %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Loan
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Approve Loan Application</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info mb-4">
+                        <h5 class="alert-heading">Loan Summary</h5>
+                        <p>
+                            <strong>Employee:</strong> {{ loan.employee.first_name }} {{ loan.employee.last_name }}<br>
+                            <strong>Loan Type:</strong> {{ loan.loan_type.name }}<br>
+                            <strong>Amount:</strong> ${{ loan.amount|floatformat:2 }}<br>
+                            <strong>Interest Rate:</strong> {{ loan.interest_rate }}%<br>
+                            <strong>Term:</strong> {{ loan.term_months }} months
+                        </p>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.start_date.id_for_label }}">Start Date*</label>
+                                    {{ form.start_date }}
+                                    {% if form.start_date.errors %}
+                                    <div class="text-danger">{{ form.start_date.errors }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">When the loan will be disbursed</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.end_date.id_for_label }}">End Date*</label>
+                                    {{ form.end_date }}
+                                    {% if form.end_date.errors %}
+                                    <div class="text-danger">{{ form.end_date.errors }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">Expected completion date</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.notes.id_for_label }}">Approval Notes</label>
+                            {{ form.notes }}
+                            {% if form.notes.errors %}
+                            <div class="text-danger">{{ form.notes.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">Any notes or comments about this approval</small>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <button type="submit" class="btn btn-success w-100">
+                                        <i class="bi bi-check-circle"></i> Approve Loan
+                                    </button>
+                                </div>
+                                <div class="col-md-6">
+                                    <a href="{% url 'reject_loan' loan.id %}" class="btn btn-outline-danger w-100">
+                                        <i class="bi bi-x-circle"></i> Reject Instead
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+    // Add Bootstrap classes to form inputs
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add form-control class to all form inputs
+        const formInputs = document.querySelectorAll('input, select, textarea');
+        formInputs.forEach(input => {
+            if (!input.classList.contains('form-check-input')) {
+                input.classList.add('form-control');
+            }
+        });
+        
+        // Style date inputs
+        const dateInputs = document.querySelectorAll('input[type=date]');
+        dateInputs.forEach(input => {
+            input.classList.add('form-control');
+        });
+    });
+</script>
+{% endblock %} 

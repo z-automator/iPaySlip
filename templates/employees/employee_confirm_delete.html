@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Delete Employee{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'employee_list' %}">Employees</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'employee_detail' employee.id %}">{{ employee.full_name }}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Delete</li>
+                </ol>
+            </nav>
+            <h1 class="h2 mb-0">Delete Employee</h1>
+            <p class="text-muted">Please confirm deletion of employee record</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <div class="alert alert-danger mb-4">
+                        <h5 class="alert-heading">Warning!</h5>
+                        <p>You are about to delete <strong>{{ employee.full_name }}</strong> ({{ employee.employee_id }}). 
+                           This action cannot be undone.</p>
+                        <hr>
+                        <p class="mb-0">All associated payroll records and loan information will remain in the system, 
+                           but will no longer be linked to an active employee.</p>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Employee Information</h5>
+                                </div>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        <span class="text-muted">Name</span>
+                                        <span class="fw-bold">{{ employee.full_name }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        <span class="text-muted">ID</span>
+                                        <span class="fw-bold">{{ employee.employee_id }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        <span class="text-muted">Position</span>
+                                        <span class="fw-bold">{{ employee.position }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        <span class="text-muted">Department</span>
+                                        <span class="fw-bold">{{ employee.department.name }}</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Associated Records</h5>
+                                </div>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        <span class="text-muted">Payroll Records</span>
+                                        <span class="fw-bold">{{ employee.payroll_set.count }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        <span class="text-muted">Loans</span>
+                                        <span class="fw-bold">{{ employee.loan_set.count }}</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'employee_detail' employee.id %}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                            <button type="submit" class="btn btn-danger">Confirm Delete</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Help</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Alternative Options</h6>
+                    <p>Instead of deleting the employee record, consider marking them as inactive:</p>
+                    <ol>
+                        <li>Go to <a href="{% url 'employee_update' employee.id %}">Edit Employee</a></li>
+                        <li>Uncheck "Active Employee" checkbox</li>
+                        <li>Add an End Date</li>
+                        <li>Save the changes</li>
+                    </ol>
+                    <p>This preserves the employee history while preventing them from appearing in active employee lists.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

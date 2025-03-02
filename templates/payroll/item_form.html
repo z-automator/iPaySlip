@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'payroll_list' %}">Payroll</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'item_list' %}">Standard Items</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
+                </ol>
+            </nav>
+            <h1 class="h2 mb-0">{{ title }}</h1>
+            <p class="text-muted">Manage standard payroll items</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Item Details</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.name|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.type|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                {{ form.description|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.calculation_method|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.value|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    {{ form.is_taxable }}
+                                    <label class="form-check-label" for="{{ form.is_taxable.id_for_label }}">
+                                        Is Taxable
+                                    </label>
+                                    <div class="form-text">{{ form.is_taxable.help_text }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    {{ form.is_active }}
+                                    <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                        Is Active
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'item_list' %}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Help</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Item Fields</h6>
+                    <ul>
+                        <li><strong>Name:</strong> A descriptive name for the item (e.g., "Health Insurance")</li>
+                        <li><strong>Type:</strong> Whether this is an earning or a deduction</li>
+                        <li><strong>Description:</strong> Optional details about the item</li>
+                        <li><strong>Calculation Method:</strong> How the amount is determined:
+                            <ul>
+                                <li><em>Fixed Amount:</em> A specific dollar value</li>
+                                <li><em>Percentage:</em> A percentage of the employee's base salary</li>
+                            </ul>
+                        </li>
+                        <li><strong>Value:</strong> The amount or percentage rate</li>
+                        <li><strong>Is Taxable:</strong> Whether this item is subject to income tax</li>
+                        <li><strong>Is Active:</strong> Whether this item should be included in payroll processing</li>
+                    </ul>
+                    
+                    <div class="alert alert-info mt-3">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Standard items are automatically applied to all payrolls during batch processing. For employee-specific items, add them directly to individual payrolls.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const calculationMethodSelect = document.getElementById('{{ form.calculation_method.id_for_label }}');
+        const valueInput = document.getElementById('{{ form.value.id_for_label }}');
+        const valueLabel = document.querySelector('label[for="{{ form.value.id_for_label }}"]');
+        
+        function updateValueLabel() {
+            if (calculationMethodSelect.value === 'percentage') {
+                valueLabel.textContent = 'Percentage Rate';
+                valueInput.placeholder = 'e.g., 5.00 for 5%';
+            } else {
+                valueLabel.textContent = 'Amount';
+                valueInput.placeholder = 'e.g., 100.00';
+            }
+        }
+        
+        // Initial update
+        updateValueLabel();
+        
+        // Update on change
+        calculationMethodSelect.addEventListener('change', updateValueLabel);
+    });
+</script>
+{% endblock %}
+{% endblock %} 

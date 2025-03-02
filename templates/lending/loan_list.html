@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Loans{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h2 mb-0">Loans</h1>
+            <p class="text-muted">Manage employee loans and track repayments</p>
+        </div>
+        <div class="col-md-4 text-end">
+            {% if perms.lending.add_loan %}
+            <a href="{% url 'loan_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Apply for Loan
+            </a>
+            {% endif %}
+            <a href="{% url 'loan_type_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-gear"></i> Loan Types
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">Total Loans</h5>
+                    <h2 class="mb-0">{{ total_loans }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">Total Amount</h5>
+                    <h2 class="mb-0">${{ total_amount|floatformat:2 }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">Pending</h5>
+                    <h2 class="mb-0">{{ total_pending }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">Outstanding Balance</h5>
+                    <h2 class="mb-0">${{ total_remaining|floatformat:2 }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <input type="text" name="search" class="form-control" placeholder="Search by employee name, ID, or loan ID" value="{{ search_query }}">
+                        <button class="btn btn-outline-secondary" type="submit">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select name="status" class="form-select">
+                        <option value="">All Statuses</option>
+                        {% for status_code, status_name in status_choices %}
+                        <option value="{{ status_code }}" {% if selected_status == status_code %}selected{% endif %}>{{ status_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                    <a href="{% url 'loan_list' %}" class="btn btn-outline-secondary">Reset</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loans Table -->
+    <div class="card">
+        <div class="card-body">
+            {% if loans %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Loan ID</th>
+                            <th>Employee</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Remaining</th>
+                            <th>Status</th>
+                            <th>Start Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for loan in loans %}
+                        <tr>
+                            <td>{{ loan.loan_id }}</td>
+                            <td>
+                                <a href="{% url 'employee_detail' loan.employee.id %}">
+                                    {{ loan.employee.first_name }} {{ loan.employee.last_name }}
+                                </a>
+                            </td>
+                            <td>{{ loan.loan_type.name }}</td>
+                            <td>${{ loan.amount|floatformat:2 }}</td>
+                            <td>
+                                {% if loan.status == 'active' %}
+                                ${{ loan.remaining_balance|floatformat:2 }}
+                                {% elif loan.status == 'completed' %}
+                                $0.00
+                                {% else %}
+                                --
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if loan.status == 'pending' %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                                {% elif loan.status == 'active' %}
+                                <span class="badge bg-primary">Active</span>
+                                {% elif loan.status == 'completed' %}
+                                <span class="badge bg-success">Completed</span>
+                                {% elif loan.status == 'rejected' %}
+                                <span class="badge bg-danger">Rejected</span>
+                                {% else %}
+                                <span class="badge bg-secondary">{{ loan.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if loan.start_date %}
+                                {{ loan.start_date|date:"M d, Y" }}
+                                {% else %}
+                                --
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        Actions
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a class="dropdown-item" href="{% url 'loan_detail' loan.id %}">
+                                                <i class="bi bi-eye"></i> View Details
+                                            </a>
+                                        </li>
+                                        {% if loan.status == 'pending' and perms.lending.change_loan %}
+                                        <li>
+                                            <a class="dropdown-item" href="{% url 'approve_loan' loan.id %}">
+                                                <i class="bi bi-check-circle"></i> Approve
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="{% url 'reject_loan' loan.id %}">
+                                                <i class="bi bi-x-circle"></i> Reject
+                                            </a>
+                                        </li>
+                                        {% endif %}
+                                        {% if loan.status == 'active' and perms.lending.add_loanrepayment %}
+                                        <li>
+                                            <a class="dropdown-item" href="{% url 'add_loan_repayment' loan.id %}">
+                                                <i class="bi bi-cash"></i> Add Repayment
+                                            </a>
+                                        </li>
+                                        {% endif %}
+                                        {% if perms.lending.change_loan %}
+                                        <li>
+                                            <a class="dropdown-item" href="{% url 'loan_update' loan.id %}">
+                                                <i class="bi bi-pencil"></i> Edit
+                                            </a>
+                                        </li>
+                                        {% endif %}
+                                        {% if loan.status == 'pending' and perms.lending.delete_loan %}
+                                        <li>
+                                            <a class="dropdown-item" href="{% url 'loan_delete' loan.id %}">
+                                                <i class="bi bi-trash"></i> Delete
+                                            </a>
+                                        </li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}" aria-label="First">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}" aria-label="Last">
+                            <span aria-hidden="true">&raquo;&raquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            
+            {% else %}
+            <div class="text-center py-4">
+                <p class="text-muted">No loans found.</p>
+                {% if perms.lending.add_loan %}
+                <a href="{% url 'loan_create' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Apply for Loan
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tax Tiers{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'payroll_list' %}">Payroll</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Tax Tiers</li>
+                </ol>
+            </nav>
+            <h1 class="h2 mb-0">Tax Tiers</h1>
+            <p class="text-muted">Manage income tax brackets</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="card-title mb-0">Income Tax Brackets</h5>
+                <a href="{% url 'tax_tier_create' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i> Add Tax Tier
+                </a>
+            </div>
+            
+            {% if tax_tiers %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Min Income</th>
+                            <th>Max Income</th>
+                            <th>Rate (%)</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tier in tax_tiers %}
+                        <tr>
+                            <td>{{ tier.name }}</td>
+                            <td>${{ tier.min_income|floatformat:2 }}</td>
+                            <td>
+                                {% if tier.max_income > 0 %}
+                                ${{ tier.max_income|floatformat:2 }}
+                                {% else %}
+                                No limit
+                                {% endif %}
+                            </td>
+                            <td>{{ tier.rate|floatformat:2 }}%</td>
+                            <td>
+                                {% if tier.is_active %}
+                                <span class="badge bg-success">Active</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'tax_tier_update' tier.id %}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="{% url 'tax_tier_delete' tier.id %}" class="btn btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1" aria-label="First">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
+                            <span aria-hidden="true">&raquo;&raquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-percent" style="font-size: 3rem;"></i>
+                <h4 class="mt-3">No tax tiers found</h4>
+                <p class="text-muted">Create tax tiers to enable automatic tax calculations</p>
+                <div class="mt-4">
+                    <a href="{% url 'tax_tier_create' %}" class="btn btn-primary">Add Tax Tier</a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">About Tax Tiers</h5>
+        </div>
+        <div class="card-body">
+            <p>Tax tiers define the income tax brackets used for calculating employee income tax. The system uses a progressive tax model where different portions of income are taxed at different rates.</p>
+            
+            <h6>How Tax Calculation Works:</h6>
+            <ol>
+                <li>Income is divided into portions that fall within each tax bracket</li>
+                <li>Each portion is taxed at the rate for its bracket</li>
+                <li>The total tax is the sum of taxes from each bracket</li>
+            </ol>
+            
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong>Example:</strong> If you have tax brackets of 0-10,000 at 10% and 10,001+ at 20%, then for an income of 15,000:
+                <ul class="mb-0">
+                    <li>First 10,000 is taxed at 10% = 1,000</li>
+                    <li>Remaining 5,000 is taxed at 20% = 1,000</li>
+                    <li>Total tax = 2,000</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

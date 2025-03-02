@@ -1,0 +1,282 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Payroll Details{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'payroll_list' %}">Payroll</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Payroll Details</li>
+                </ol>
+            </nav>
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-0">Payroll Details</h1>
+                    <p class="text-muted">{{ payroll.employee.full_name }} - {{ payroll.period.name }}</p>
+                </div>
+                <div>
+                    <a href="{% url 'generate_payslip_pdf' payroll.id %}" class="btn btn-primary" target="_blank">
+                        <i class="bi bi-file-pdf me-1"></i> Generate Payslip
+                    </a>
+                    <a href="{% url 'payroll_update' payroll.id %}" class="btn btn-outline-secondary ms-2">
+                        <i class="bi bi-pencil me-1"></i> Edit
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Payroll Summary -->
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Payroll Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-1">Status</h6>
+                        <span class="badge 
+                            {% if payroll.status == 'completed' %}bg-success
+                            {% elif payroll.status == 'processing' %}bg-warning
+                            {% elif payroll.status == 'cancelled' %}bg-danger
+                            {% else %}bg-secondary{% endif %} fs-6">
+                            {{ payroll.status|title }}
+                        </span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-1">Period</h6>
+                        <p class="mb-0">{{ payroll.period.name }}</p>
+                        <small class="text-muted">{{ payroll.period.start_date|date:"M d, Y" }} - {{ payroll.period.end_date|date:"M d, Y" }}</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-1">Payment Date</h6>
+                        <p class="mb-0">{{ payroll.period.payment_date|date:"F d, Y" }}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-1">Processed Date</h6>
+                        <p class="mb-0">{{ payroll.processed_date|date:"F d, Y H:i"|default:"Not processed yet" }}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-1">Created</h6>
+                        <p class="mb-0">{{ payroll.created_at|date:"F d, Y H:i" }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Employee Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Employee Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        {% if payroll.employee.profile_image %}
+                        <img src="{{ payroll.employee.profile_image.url }}" alt="{{ payroll.employee.full_name }}" 
+                             class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                        {% else %}
+                        <div class="bg-light rounded-circle me-3 d-flex align-items-center justify-content-center" 
+                             style="width: 50px; height: 50px;">
+                            <i class="bi bi-person"></i>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <h6 class="mb-0">{{ payroll.employee.full_name }}</h6>
+                            <p class="text-muted mb-0">{{ payroll.employee.position }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-1">Employee ID</h6>
+                        <p class="mb-0">{{ payroll.employee.employee_id }}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-1">Department</h6>
+                        <p class="mb-0">{{ payroll.employee.department.name|default:"--" }}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-1">Base Salary</h6>
+                        <p class="mb-0">${{ payroll.employee.base_salary|floatformat:2 }}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-1">Bank Account</h6>
+                        <p class="mb-0">{{ payroll.employee.bank_account|default:"--" }}</p>
+                        <small class="text-muted">{{ payroll.employee.bank_name|default:"" }}</small>
+                    </div>
+                    
+                    <div class="text-center mt-3">
+                        <a href="{% url 'employee_detail' payroll.employee.id %}" class="btn btn-sm btn-outline-primary">
+                            View Employee Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Payroll Details -->
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Payroll Breakdown</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="text-muted mb-2">Gross Salary</h6>
+                                    <h3 class="mb-0">${{ payroll.gross_salary|floatformat:2 }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="text-muted mb-2">Total Deductions</h6>
+                                    <h3 class="mb-0">${{ payroll.total_deductions|floatformat:2 }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="text-muted mb-2">Net Salary</h6>
+                                    <h3 class="mb-0">${{ payroll.net_salary|floatformat:2 }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Earnings -->
+                    <h6 class="border-bottom pb-2 mb-3">Earnings</h6>
+                    {% if earnings %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Description</th>
+                                    <th class="text-end">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for entry in earnings %}
+                                <tr>
+                                    <td>{{ entry.name }}</td>
+                                    <td>{{ entry.description|default:"" }}</td>
+                                    <td class="text-end">${{ entry.amount|floatformat:2 }}</td>
+                                </tr>
+                                {% endfor %}
+                                <tr class="table-light fw-bold">
+                                    <td colspan="2">Total Earnings</td>
+                                    <td class="text-end">${{ payroll.gross_salary|floatformat:2 }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No earnings recorded.</p>
+                    {% endif %}
+                    
+                    <!-- Deductions -->
+                    <h6 class="border-bottom pb-2 mb-3 mt-4">Deductions</h6>
+                    {% if deductions %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Description</th>
+                                    <th class="text-end">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for entry in deductions %}
+                                <tr>
+                                    <td>{{ entry.name }}</td>
+                                    <td>{{ entry.description|default:"" }}</td>
+                                    <td class="text-end">${{ entry.amount|floatformat:2 }}</td>
+                                </tr>
+                                {% endfor %}
+                                <tr class="table-light fw-bold">
+                                    <td colspan="2">Total Deductions</td>
+                                    <td class="text-end">${{ payroll.total_deductions|floatformat:2 }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No deductions recorded.</p>
+                    {% endif %}
+                    
+                    <!-- Net Pay Summary -->
+                    <div class="card bg-light mt-4">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h5>Net Pay</h5>
+                                    <p class="text-muted mb-0">Final amount after all deductions</p>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <h3 class="mb-0">${{ payroll.net_salary|floatformat:2 }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Active Loans -->
+            {% if active_loans %}
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Active Loans</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Loan ID</th>
+                                    <th>Amount</th>
+                                    <th>Balance</th>
+                                    <th>Monthly Payment</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for loan in active_loans %}
+                                <tr>
+                                    <td>
+                                        <a href="#">{{ loan.loan_id }}</a>
+                                    </td>
+                                    <td>${{ loan.amount|floatformat:2 }}</td>
+                                    <td>${{ loan.remaining_balance|floatformat:2 }}</td>
+                                    <td>${{ loan.monthly_payment|floatformat:2 }}</td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ loan.status|title }}</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h2 mb-0">{{ title }}</h1>
+            <p class="text-muted">{% if object %}Update loan details{% else %}Submit a new loan application{% endif %}</p>
+        </div>
+        <div class="col-md-4 text-end">
+            {% if object %}
+            <a href="{% url 'loan_detail' object.id %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Loan
+            </a>
+            {% else %}
+            <a href="{% url 'loan_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Loans
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.employee.id_for_label }}">Employee*</label>
+                                    {{ form.employee }}
+                                    {% if form.employee.errors %}
+                                    <div class="text-danger">{{ form.employee.errors }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">{{ form.employee.help_text }}</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.loan_type.id_for_label }}">Loan Type*</label>
+                                    {{ form.loan_type }}
+                                    {% if form.loan_type.errors %}
+                                    <div class="text-danger">{{ form.loan_type.errors }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">{{ form.loan_type.help_text }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.amount.id_for_label }}">Amount*</label>
+                                    {{ form.amount }}
+                                    {% if form.amount.errors %}
+                                    <div class="text-danger">{{ form.amount.errors }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">{{ form.amount.help_text }}</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.interest_rate.id_for_label }}">Interest Rate (%)*</label>
+                                    {{ form.interest_rate }}
+                                    {% if form.interest_rate.errors %}
+                                    <div class="text-danger">{{ form.interest_rate.errors }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">{{ form.interest_rate.help_text }}</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.term_months.id_for_label }}">Term (months)*</label>
+                                    {{ form.term_months }}
+                                    {% if form.term_months.errors %}
+                                    <div class="text-danger">{{ form.term_months.errors }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">{{ form.term_months.help_text }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if form.status and not form.status.is_hidden %}
+                        <div class="form-group mb-3">
+                            <label for="{{ form.status.id_for_label }}">Status</label>
+                            {{ form.status }}
+                            {% if form.status.errors %}
+                            <div class="text-danger">{{ form.status.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">{{ form.status.help_text }}</small>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.description.id_for_label }}">Description</label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                            <div class="text-danger">{{ form.description.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">{{ form.description.help_text }}</small>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.documents.id_for_label }}">Supporting Documents</label>
+                            {{ form.documents }}
+                            {% if form.documents.errors %}
+                            <div class="text-danger">{{ form.documents.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">{{ form.documents.help_text }}</small>
+                        </div>
+                        
+                        <div class="mt-4 text-end">
+                            <button type="submit" class="btn btn-primary">
+                                {{ button_label|default:"Save" }}
+                            </button>
+                            {% if object %}
+                            <a href="{% url 'loan_detail' object.id %}" class="btn btn-outline-secondary">Cancel</a>
+                            {% else %}
+                            <a href="{% url 'loan_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+    // Add Bootstrap classes to form inputs
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add form-control class to all form inputs
+        const formInputs = document.querySelectorAll('input, select, textarea');
+        formInputs.forEach(input => {
+            if (!input.classList.contains('form-check-input')) {
+                input.classList.add('form-control');
+            }
+        });
+        
+        // Handle file input display
+        const fileInput = document.querySelector('input[type=file]');
+        if (fileInput) {
+            fileInput.classList.add('form-control-file');
+        }
+        
+        // Style select elements
+        const selects = document.querySelectorAll('select');
+        selects.forEach(select => {
+            select.classList.add('form-select');
+        });
+    });
+</script>
+{% endblock %} 

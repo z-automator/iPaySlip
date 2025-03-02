@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h2 mb-0">{{ title }}</h1>
+            <p class="text-muted">{% if object %}Update loan type{% else %}Create a new loan type{% endif %}</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'loan_type_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Loan Types
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.name.id_for_label }}">Name*</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                            <div class="text-danger">{{ form.name.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">{{ form.name.help_text }}</small>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.description.id_for_label }}">Description</label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                            <div class="text-danger">{{ form.description.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">{{ form.description.help_text }}</small>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.interest_rate.id_for_label }}">Interest Rate (%)*</label>
+                                    {{ form.interest_rate }}
+                                    {% if form.interest_rate.errors %}
+                                    <div class="text-danger">{{ form.interest_rate.errors }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">{{ form.interest_rate.help_text }}</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.max_amount.id_for_label }}">Maximum Amount ($)*</label>
+                                    {{ form.max_amount }}
+                                    {% if form.max_amount.errors %}
+                                    <div class="text-danger">{{ form.max_amount.errors }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">{{ form.max_amount.help_text }}</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.max_term.id_for_label }}">Maximum Term (months)*</label>
+                                    {{ form.max_term }}
+                                    {% if form.max_term.errors %}
+                                    <div class="text-danger">{{ form.max_term.errors }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">{{ form.max_term.help_text }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <div class="form-check form-switch">
+                                {{ form.is_active }}
+                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">Active</label>
+                            </div>
+                            {% if form.is_active.errors %}
+                            <div class="text-danger">{{ form.is_active.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">{{ form.is_active.help_text }}</small>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.eligibility_criteria.id_for_label }}">Eligibility Criteria</label>
+                            {{ form.eligibility_criteria }}
+                            {% if form.eligibility_criteria.errors %}
+                            <div class="text-danger">{{ form.eligibility_criteria.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">{{ form.eligibility_criteria.help_text }}</small>
+                        </div>
+                        
+                        <div class="mt-4 text-end">
+                            <button type="submit" class="btn btn-primary">
+                                {% if object %}Update{% else %}Create{% endif %} Loan Type
+                            </button>
+                            <a href="{% url 'loan_type_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+    // Add Bootstrap classes to form inputs
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add form-control class to all form inputs except checkboxes
+        const formInputs = document.querySelectorAll('input:not([type=checkbox]), select, textarea');
+        formInputs.forEach(input => {
+            input.classList.add('form-control');
+        });
+        
+        // Style checkboxes
+        const checkboxes = document.querySelectorAll('input[type=checkbox]');
+        checkboxes.forEach(checkbox => {
+            checkbox.classList.add('form-check-input');
+        });
+        
+        // Style select elements
+        const selects = document.querySelectorAll('select');
+        selects.forEach(select => {
+            select.classList.add('form-select');
+        });
+    });
+</script>
+{% endblock %} 

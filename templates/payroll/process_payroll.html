@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Process Payroll{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'payroll_list' %}">Payroll</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Process Payroll</li>
+                </ol>
+            </nav>
+            <h1 class="h2 mb-0">Process Payroll</h1>
+            <p class="text-muted">Generate payroll records for employees</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Payroll Processing</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            This will generate payroll records for the selected period. 
+                            You can choose to process payroll for all active employees or select specific employees.
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.period.id_for_label }}" class="form-label">Payroll Period</label>
+                            {{ form.period }}
+                            {% if form.period.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.period.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <div class="form-text">{{ form.period.help_text }}</div>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            {{ form.include_all_active_employees }}
+                            <label class="form-check-label" for="{{ form.include_all_active_employees.id_for_label }}">
+                                Process for all active employees
+                            </label>
+                            <div class="form-text">{{ form.include_all_active_employees.help_text }}</div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'payroll_list' %}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Process Payroll</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Help</h5>
+                </div>
+                <div class="card-body">
+                    <h6>What happens when you process payroll?</h6>
+                    <p>When you process payroll, the system will:</p>
+                    <ul>
+                        <li>Create payroll records for each employee</li>
+                        <li>Calculate earnings based on base salary</li>
+                        <li>Apply standard deductions</li>
+                        <li>Calculate loan repayments if applicable</li>
+                    </ul>
+                    
+                    <h6>Next Steps</h6>
+                    <p>After processing, you should:</p>
+                    <ol>
+                        <li>Review each payroll record</li>
+                        <li>Make any necessary adjustments</li>
+                        <li>Approve and finalize payrolls</li>
+                        <li>Generate payslips for distribution</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

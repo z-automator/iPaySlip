@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2 text-center">
+        <h1 class="display-4 mb-4">Welcome to Payslip System</h1>
+        <p class="lead">A comprehensive solution for managing payroll, employees, and loans.</p>
+        
+        <div class="card bg-light my-5">
+            <div class="card-body">
+                <h2>Features</h2>
+                <div class="row my-4">
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h3 class="h5"><i class="bi bi-people-fill text-primary me-2"></i>Employee Management</h3>
+                                <p>Add, update, and track employee information with ease.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h3 class="h5"><i class="bi bi-cash-stack text-success me-2"></i>Payroll Processing</h3>
+                                <p>Generate payslips with automated deduction calculations.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h3 class="h5"><i class="bi bi-bank text-warning me-2"></i>Loan Management</h3>
+                                <p>Manage employee loans and automated repayment schedules.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {% if not user.is_authenticated %}
+        <div class="mt-4">
+            <a href="{% url 'account_login' %}" class="btn btn-primary btn-lg me-2">Login</a>
+            <a href="{% url 'account_signup' %}" class="btn btn-outline-secondary btn-lg">Register</a>
+        </div>
+        {% else %}
+        <div class="mt-4">
+            <a href="{% url 'employee_list' %}" class="btn btn-primary btn-lg me-2">Manage Employees</a>
+            <a href="{% url 'payroll_list' %}" class="btn btn-success btn-lg">Process Payroll</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

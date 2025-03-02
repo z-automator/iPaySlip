@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Payroll Report</title>
+    <style>
+        @page {
+            size: a4 landscape;
+            margin: 1cm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #333;
+        }
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ddd;
+        }
+        .company-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .company-details {
+            font-size: 12px;
+            color: #666;
+        }
+        .report-title {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+        .info-row {
+            margin-bottom: 5px;
+        }
+        .info-label {
+            font-weight: bold;
+            display: inline-block;
+            width: 150px;
+        }
+        .info-value {
+            display: inline-block;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 11px;
+        }
+        .table th, .table td {
+            padding: 6px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .table th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .total-row {
+            font-weight: bold;
+            background-color: #f5f5f5;
+        }
+        .summary-box {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-top: 20px;
+            background-color: #f9f9f9;
+        }
+        .summary-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .summary-table td {
+            padding: 5px;
+        }
+        .summary-label {
+            font-weight: bold;
+            width: 70%;
+        }
+        .summary-value {
+            text-align: right;
+            width: 30%;
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 10px;
+            border-top: 1px solid #ddd;
+            font-size: 10px;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header with Company Information -->
+        <div class="header">
+            <div class="company-name">{{ company.name }}</div>
+            <div class="company-details">
+                {{ company.address }}<br>
+                Phone: {{ company.phone }} | Email: {{ company.email }}<br>
+                Website: {{ company.website }}
+            </div>
+        </div>
+        
+        <div class="report-title">PAYROLL REPORT</div>
+        
+        <!-- Report Information -->
+        <div class="section">
+            <div class="info-row">
+                <span class="info-label">Payroll Period:</span>
+                <span class="info-value">{{ period.name }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Pay Period:</span>
+                <span class="info-value">{{ period.start_date|date:"M d, Y" }} - {{ period.end_date|date:"M d, Y" }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Payment Date:</span>
+                <span class="info-value">{{ period.payment_date|date:"F d, Y" }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Total Employees:</span>
+                <span class="info-value">{{ payrolls|length }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Report Generated:</span>
+                <span class="info-value">{% now "F d, Y H:i" %}</span>
+            </div>
+        </div>
+        
+        <!-- Payroll Summary -->
+        <div class="section">
+            <div class="section-title">Payroll Summary</div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Employee ID</th>
+                        <th>Employee Name</th>
+                        <th>Department</th>
+                        <th>Position</th>
+                        <th class="text-right">Gross Salary</th>
+                        <th class="text-right">Deductions</th>
+                        <th class="text-right">Net Salary</th>
+                        <th class="text-center">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payroll in payrolls %}
+                    <tr>
+                        <td>{{ payroll.employee.employee_id }}</td>
+                        <td>{{ payroll.employee.full_name }}</td>
+                        <td>{{ payroll.employee.department.name|default:"--" }}</td>
+                        <td>{{ payroll.employee.position|default:"--" }}</td>
+                        <td class="text-right">${{ payroll.gross_salary|floatformat:2 }}</td>
+                        <td class="text-right">${{ payroll.total_deductions|floatformat:2 }}</td>
+                        <td class="text-right">${{ payroll.net_salary|floatformat:2 }}</td>
+                        <td class="text-center">{{ payroll.status|title }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="total-row">
+                        <td colspan="4">Total</td>
+                        <td class="text-right">${{ total_gross|floatformat:2 }}</td>
+                        <td class="text-right">${{ total_deductions|floatformat:2 }}</td>
+                        <td class="text-right">${{ total_net|floatformat:2 }}</td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Financial Summary -->
+        <div class="summary-box">
+            <div class="summary-title">Financial Summary</div>
+            <table class="summary-table">
+                <tr>
+                    <td class="summary-label">Total Gross Salary:</td>
+                    <td class="summary-value">${{ total_gross|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td class="summary-label">Total Deductions:</td>
+                    <td class="summary-value">${{ total_deductions|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td class="summary-label">Total Net Salary:</td>
+                    <td class="summary-value">${{ total_net|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td class="summary-label">Average Gross Salary:</td>
+                    <td class="summary-value">
+                        ${% if payrolls|length > 0 %}{{ total_gross|floatformat:2|default:"0.00" }}{% else %}0.00{% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="summary-label">Average Net Salary:</td>
+                    <td class="summary-value">
+                        ${% if payrolls|length > 0 %}{{ total_net|floatformat:2|default:"0.00" }}{% else %}0.00{% endif %}
+                    </td>
+                </tr>
+            </table>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p>This is a computer-generated document and does not require a signature.</p>
+            <p>For any queries regarding this report, please contact the HR department.</p>
+            <p>Generated on: {% now "F d, Y H:i" %}</p>
+        </div>
+    </div>
+</body>
+</html> 

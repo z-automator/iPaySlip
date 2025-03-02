@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'payroll_list' %}">Payroll</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'tax_tier_list' %}">Tax Tiers</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
+                </ol>
+            </nav>
+            <h1 class="h2 mb-0">{{ title }}</h1>
+            <p class="text-muted">Manage income tax brackets</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Tax Tier Details</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                {{ form.name|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.min_income|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.max_income|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.rate|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check mt-4">
+                                    {{ form.is_active }}
+                                    <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                        Active
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'tax_tier_list' %}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Help</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Tax Tier Fields</h6>
+                    <ul>
+                        <li><strong>Name:</strong> A descriptive name for the tax bracket (e.g., "Low Income Bracket")</li>
+                        <li><strong>Min Income:</strong> The lower bound of the income range for this tax bracket</li>
+                        <li><strong>Max Income:</strong> The upper bound of the income range (use 0 for no upper limit)</li>
+                        <li><strong>Rate:</strong> The tax percentage rate applied to income in this bracket</li>
+                        <li><strong>Active:</strong> Whether this tax tier is currently in use</li>
+                    </ul>
+                    
+                    <h6>Progressive Tax Example</h6>
+                    <p>For a progressive tax system with these brackets:</p>
+                    <ul>
+                        <li>0 - 10,000: 10%</li>
+                        <li>10,001 - 30,000: 15%</li>
+                        <li>30,001+: 25%</li>
+                    </ul>
+                    <p>An income of 45,000 would be taxed as:</p>
+                    <ul>
+                        <li>10,000 × 10% = 1,000</li>
+                        <li>20,000 × 15% = 3,000</li>
+                        <li>15,000 × 25% = 3,750</li>
+                        <li>Total tax: 7,750</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

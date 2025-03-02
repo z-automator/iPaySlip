@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Loan Types{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h2 mb-0">Loan Types</h1>
+            <p class="text-muted">Manage loan types and their criteria</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'loan_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Loans
+            </a>
+            {% if perms.lending.add_loantype %}
+            <a href="{% url 'loan_type_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> New Loan Type
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-6">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="show_inactive" name="show_inactive" {% if show_inactive %}checked{% endif %}>
+                        <label class="form-check-label" for="show_inactive">Show Inactive Loan Types</label>
+                    </div>
+                </div>
+                <div class="col-md-6 text-end">
+                    <button type="submit" class="btn btn-primary">Apply Filters</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loan Types Table -->
+    <div class="card">
+        <div class="card-body">
+            {% if loan_types %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Interest Rate (%)</th>
+                            <th>Max Amount ($)</th>
+                            <th>Max Term (months)</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for loan_type in loan_types %}
+                        <tr>
+                            <td>{{ loan_type.name }}</td>
+                            <td>{{ loan_type.description|truncatechars:50 }}</td>
+                            <td>{{ loan_type.interest_rate }}</td>
+                            <td>${{ loan_type.max_amount|floatformat:2 }}</td>
+                            <td>{{ loan_type.max_term }}</td>
+                            <td>
+                                {% if loan_type.is_active %}
+                                <span class="badge bg-success">Active</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    {% if perms.lending.change_loantype %}
+                                    <a href="{% url 'loan_type_update' loan_type.id %}" class="btn btn-outline-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    {% endif %}
+                                    {% if perms.lending.delete_loantype %}
+                                    <a href="{% url 'loan_type_delete' loan_type.id %}" class="btn btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if show_inactive %}&show_inactive=on{% endif %}" aria-label="First">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if show_inactive %}&show_inactive=on{% endif %}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if show_inactive %}&show_inactive=on{% endif %}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if show_inactive %}&show_inactive=on{% endif %}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if show_inactive %}&show_inactive=on{% endif %}" aria-label="Last">
+                            <span aria-hidden="true">&raquo;&raquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            
+            {% else %}
+            <div class="text-center py-4">
+                <p class="text-muted">No loan types found.</p>
+                {% if perms.lending.add_loantype %}
+                <a href="{% url 'loan_type_create' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Create First Loan Type
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+    // Auto-submit form when show_inactive checkbox is changed
+    document.addEventListener('DOMContentLoaded', function() {
+        const showInactiveCheckbox = document.getElementById('show_inactive');
+        if (showInactiveCheckbox) {
+            showInactiveCheckbox.addEventListener('change', function() {
+                this.closest('form').submit();
+            });
+        }
+    });
+</script>
+{% endblock %} 

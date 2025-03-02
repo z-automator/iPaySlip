@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Delete Department{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'department_list' %}">Departments</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'department_detail' department.id %}">{{ department.name }}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Delete</li>
+                </ol>
+            </nav>
+            <h1 class="h2 mb-0">Delete Department</h1>
+            <p class="text-muted">Please confirm deletion of department</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    {% if department.employee_set.exists %}
+                    <div class="alert alert-danger mb-4">
+                        <h5 class="alert-heading">Cannot Delete Department!</h5>
+                        <p>This department has <strong>{{ department.employee_set.count }}</strong> employee(s) assigned to it. 
+                           You cannot delete a department with active employees.</p>
+                        <hr>
+                        <p class="mb-0">Please reassign all employees to other departments before attempting to delete this department.</p>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'department_detail' department.id %}" class="btn btn-primary">Return to Department</a>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning mb-4">
+                        <h5 class="alert-heading">Warning!</h5>
+                        <p>You are about to delete the department <strong>{{ department.name }}</strong>. 
+                           This action cannot be undone.</p>
+                    </div>
+                    
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Department Information</h5>
+                        </div>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span class="text-muted">Name</span>
+                                <span class="fw-bold">{{ department.name }}</span>
+                            </li>
+                            <li class="list-group-item">
+                                <span class="text-muted">Description</span>
+                                <div class="mt-2">{{ department.description|default:"No description" }}</div>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span class="text-muted">Created</span>
+                                <span>{{ department.created_at|date:"M d, Y" }}</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'department_detail' department.id %}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                            <button type="submit" class="btn btn-danger">Confirm Delete</button>
+                        </div>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Help</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Department Deletion Rules</h6>
+                    <p>Departments can only be deleted if they have no employees assigned to them.</p>
+                    
+                    {% if department.employee_set.exists %}
+                    <h6>How to Reassign Employees</h6>
+                    <ol>
+                        <li>Go to each employee's profile</li>
+                        <li>Click "Edit" and change their department</li>
+                        <li>Save the changes</li>
+                        <li>Return to this page after all employees are reassigned</li>
+                    </ol>
+                    
+                    <a href="{% url 'department_detail' department.id %}" class="btn btn-sm btn-outline-primary">
+                        View Employees
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

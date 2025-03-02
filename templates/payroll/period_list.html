@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Payroll Periods{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'payroll_list' %}">Payroll</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Payroll Periods</li>
+                </ol>
+            </nav>
+            <h1 class="h2 mb-0">Payroll Periods</h1>
+            <p class="text-muted">Manage payroll periods and payment schedules</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="card-title mb-0">Payroll Periods</h5>
+                <a href="{% url 'period_create' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i> Add Period
+                </a>
+            </div>
+            
+            {% if periods %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Payment Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for period in periods %}
+                        <tr>
+                            <td>{{ period.name }}</td>
+                            <td>{{ period.start_date|date:"M d, Y" }}</td>
+                            <td>{{ period.end_date|date:"M d, Y" }}</td>
+                            <td>{{ period.payment_date|date:"M d, Y" }}</td>
+                            <td>
+                                {% if period.is_active %}
+                                <span class="badge bg-success">Active</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'period_update' period.id %}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="{% url 'period_delete' period.id %}" class="btn btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1" aria-label="First">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
+                            <span aria-hidden="true">&raquo;&raquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-calendar-range" style="font-size: 3rem;"></i>
+                <h4 class="mt-3">No payroll periods found</h4>
+                <p class="text-muted">Create payroll periods to define payment schedules</p>
+                <div class="mt-4">
+                    <a href="{% url 'period_create' %}" class="btn btn-primary">Add First Period</a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">About Payroll Periods</h5>
+        </div>
+        <div class="card-body">
+            <p>Payroll periods define the time frames for which employees are paid. Each period has a start date, end date, and payment date.</p>
+            
+            <h6>Common Period Types:</h6>
+            <ul>
+                <li><strong>Monthly:</strong> Typically covers a calendar month (e.g., January 1-31)</li>
+                <li><strong>Semi-monthly:</strong> Twice per month (e.g., 1st-15th and 16th-end of month)</li>
+                <li><strong>Bi-weekly:</strong> Every two weeks (e.g., 26 pay periods per year)</li>
+                <li><strong>Weekly:</strong> Every week (e.g., 52 pay periods per year)</li>
+            </ul>
+            
+            <div class="alert alert-info mt-3">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong>Tip:</strong> When creating payroll periods, ensure there are no gaps between periods to avoid missing days in payroll calculations.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

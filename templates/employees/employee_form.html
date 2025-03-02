@@ -1,0 +1,310 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'employee_list' %}">Employees</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
+                </ol>
+            </nav>
+            <h1 class="h2 mb-0">{{ title }}</h1>
+            <p class="text-muted">Enter employee information below</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <div class="row">
+                            <!-- User Account Section -->
+                            <div class="col-12 mb-4">
+                                <h5 class="border-bottom pb-2">User Account</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name*</label>
+                                        {{ form.first_name }}
+                                        {% if form.first_name.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.first_name.errors %}
+                                            {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name*</label>
+                                        {{ form.last_name }}
+                                        {% if form.last_name.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.last_name.errors %}
+                                            {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="mb-3 mt-3">
+                                    <label for="{{ form.user.id_for_label }}" class="form-label">Link to Existing User (optional)</label>
+                                    {{ form.user }}
+                                    {% if form.user.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.user.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                    <div class="form-text">{{ form.user.help_text }}</div>
+                                </div>
+                            </div>
+
+                            <!-- Personal Information Section -->
+                            <div class="col-12 mb-4">
+                                <h5 class="border-bottom pb-2">Personal Information</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="{{ form.employee_id.id_for_label }}" class="form-label">Employee ID*</label>
+                                        {{ form.employee_id }}
+                                        {% if form.employee_id.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.employee_id.errors %}
+                                            {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="{{ form.date_of_birth.id_for_label }}" class="form-label">Date of Birth</label>
+                                        {{ form.date_of_birth }}
+                                        {% if form.date_of_birth.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.date_of_birth.errors %}
+                                            {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="{{ form.phone_number.id_for_label }}" class="form-label">Phone Number</label>
+                                        {{ form.phone_number }}
+                                        {% if form.phone_number.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.phone_number.errors %}
+                                            {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="{{ form.profile_image.id_for_label }}" class="form-label">Profile Image</label>
+                                        {{ form.profile_image }}
+                                        {% if form.profile_image.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.profile_image.errors %}
+                                            {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="{{ form.address.id_for_label }}" class="form-label">Address</label>
+                                        {{ form.address }}
+                                        {% if form.address.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.address.errors %}
+                                            {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Employment Information Section -->
+                            <div class="col-12 mb-4">
+                                <h5 class="border-bottom pb-2">Employment Information</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="{{ form.department.id_for_label }}" class="form-label">Department*</label>
+                                        {{ form.department }}
+                                        {% if form.department.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.department.errors %}
+                                            {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="{{ form.position.id_for_label }}" class="form-label">Position*</label>
+                                        {{ form.position }}
+                                        {% if form.position.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.position.errors %}
+                                            {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="{{ form.hire_date.id_for_label }}" class="form-label">Hire Date*</label>
+                                        {{ form.hire_date }}
+                                        {% if form.hire_date.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.hire_date.errors %}
+                                            {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="{{ form.end_date.id_for_label }}" class="form-label">End Date</label>
+                                        {{ form.end_date }}
+                                        {% if form.end_date.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.end_date.errors %}
+                                            {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                        <div class="form-text">Leave blank for current employees</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Salary & Banking Section -->
+                            <div class="col-12 mb-4">
+                                <h5 class="border-bottom pb-2">Salary & Banking</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label for="{{ form.base_salary.id_for_label }}" class="form-label">Base Salary*</label>
+                                        {{ form.base_salary }}
+                                        {% if form.base_salary.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.base_salary.errors %}
+                                            {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="{{ form.bank_name.id_for_label }}" class="form-label">Bank Name</label>
+                                        {{ form.bank_name }}
+                                        {% if form.bank_name.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.bank_name.errors %}
+                                            {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="{{ form.bank_account.id_for_label }}" class="form-label">Bank Account</label>
+                                        {{ form.bank_account }}
+                                        {% if form.bank_account.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.bank_account.errors %}
+                                            {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Status Section -->
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2">Status</h5>
+                                <div class="form-check">
+                                    {{ form.is_active }}
+                                    <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                        Active Employee
+                                    </label>
+                                    {% if form.is_active.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.is_active.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="{% url 'employee_list' %}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">{{ button_label }}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Help</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Required Fields</h6>
+                    <p>Fields marked with * are required.</p>
+                    
+                    <h6>User Account</h6>
+                    <p>Enter the first and last name for the employee. If you select an existing user account, 
+                    these will be linked. Otherwise, a new user account will be created automatically.</p>
+                    
+                    <h6>Employment Status</h6>
+                    <p>If an employee is no longer active, uncheck the "Active Employee" box and provide an end date.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add Bootstrap classes to form inputs
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add form-control class to all form inputs
+        const formControls = document.querySelectorAll('input, select, textarea');
+        formControls.forEach(function(element) {
+            if (!element.classList.contains('form-check-input')) {
+                element.classList.add('form-control');
+            }
+            
+            if (element.required) {
+                element.classList.add('required');
+            }
+        });
+        
+        // Initialize form validation
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            
+            form.classList.add('was-validated');
+        });
+    });
+</script>
+{% endblock %} 

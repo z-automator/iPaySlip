@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ department.name }} - Department Details{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'department_list' %}">Departments</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ department.name }}</li>
+                </ol>
+            </nav>
+            <h1 class="h2 mb-0">{{ department.name }}</h1>
+            <p class="text-muted">Department Details</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="btn-group">
+                {% if perms.employees.change_department %}
+                <a href="{% url 'department_update' department.id %}" class="btn btn-outline-primary">
+                    <i class="bi bi-pencil"></i> Edit
+                </a>
+                {% endif %}
+                {% if perms.employees.delete_department %}
+                <a href="{% url 'department_delete' department.id %}" class="btn btn-outline-danger">
+                    <i class="bi bi-trash"></i> Delete
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Department Info -->
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Department Information</h5>
+                </div>
+                <div class="card-body">
+                    {% if department.description %}
+                    <p>{{ department.description }}</p>
+                    {% else %}
+                    <p class="text-muted">No description available</p>
+                    {% endif %}
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">Total Employees</span>
+                        <span class="fw-bold">{{ department.employee_set.count }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">Active Employees</span>
+                        <span class="fw-bold">{{ active_employees_count }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">Created</span>
+                        <span class="fw-bold">{{ department.created_at|date:"M d, Y" }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Department Employees -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Employees in {{ department.name }}</h5>
+                    {% if perms.employees.add_employee %}
+                    <a href="{% url 'employee_create' %}?department={{ department.id }}" class="btn btn-sm btn-primary">
+                        <i class="bi bi-plus-circle"></i> Add Employee
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if department_employees %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Position</th>
+                                    <th>Status</th>
+                                    <th>Hire Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for employee in department_employees %}
+                                <tr>
+                                    <td>{{ employee.employee_id }}</td>
+                                    <td>
+                                        <a href="{% url 'employee_detail' employee.id %}">
+                                            {{ employee.full_name }}
+                                        </a>
+                                    </td>
+                                    <td>{{ employee.position }}</td>
+                                    <td>
+                                        {% if employee.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ employee.hire_date|date:"M d, Y" }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'employee_detail' employee.id %}" class="btn btn-outline-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            {% if perms.employees.change_employee %}
+                                            <a href="{% url 'employee_update' employee.id %}" class="btn btn-outline-secondary">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    {% if is_paginated %}
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center mt-4">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1" aria-label="First">
+                                    <span aria-hidden="true">&laquo;&laquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+
+                            {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                            <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                            {% endif %}
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                    
+                    {% else %}
+                    <div class="text-center py-4">
+                        <p class="text-muted">No employees found in this department.</p>
+                        {% if perms.employees.add_employee %}
+                        <a href="{% url 'employee_create' %}?department={{ department.id }}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Add First Employee
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Loan Details: {{ loan.loan_id }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h2 mb-0">Loan Details</h1>
+            <p class="text-muted">{{ loan.loan_id }}</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'loan_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Loans
+            </a>
+            
+            {% if loan.status == 'active' and perms.lending.add_loanrepayment %}
+            <a href="{% url 'add_loan_repayment' loan.id %}" class="btn btn-primary">
+                <i class="bi bi-cash"></i> Add Repayment
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Loan Information -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Loan Information</h5>
+                    {% if perms.lending.change_loan %}
+                    <a href="{% url 'loan_update' loan.id %}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-pencil"></i> Edit
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <span class="badge 
+                            {% if loan.status == 'pending' %}bg-warning text-dark
+                            {% elif loan.status == 'active' %}bg-primary
+                            {% elif loan.status == 'completed' %}bg-success
+                            {% elif loan.status == 'rejected' %}bg-danger
+                            {% else %}bg-secondary{% endif %}">
+                            {{ loan.get_status_display }}
+                        </span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <p class="text-muted mb-1">Employee</p>
+                        <h6>
+                            <a href="{% url 'employee_detail' loan.employee.id %}">
+                                {{ loan.employee.first_name }} {{ loan.employee.last_name }}
+                            </a>
+                        </h6>
+                    </div>
+
+                    <div class="mb-3">
+                        <p class="text-muted mb-1">Loan Type</p>
+                        <h6>{{ loan.loan_type.name }}</h6>
+                    </div>
+
+                    <div class="mb-3">
+                        <p class="text-muted mb-1">Amount</p>
+                        <h5>${{ loan.amount|floatformat:2 }}</h5>
+                    </div>
+
+                    <div class="mb-3">
+                        <p class="text-muted mb-1">Interest Rate</p>
+                        <h6>{{ loan.interest_rate }}%</h6>
+                    </div>
+
+                    <div class="mb-3">
+                        <p class="text-muted mb-1">Term</p>
+                        <h6>{{ loan.term_months }} months</h6>
+                    </div>
+
+                    <div class="mb-3">
+                        <p class="text-muted mb-1">Start Date</p>
+                        <h6>{% if loan.start_date %}{{ loan.start_date|date:"M d, Y" }}{% else %}--{% endif %}</h6>
+                    </div>
+
+                    <div class="mb-3">
+                        <p class="text-muted mb-1">End Date</p>
+                        <h6>{% if loan.end_date %}{{ loan.end_date|date:"M d, Y" }}{% else %}--{% endif %}</h6>
+                    </div>
+
+                    {% if loan.status == 'completed' %}
+                    <div class="mb-3">
+                        <p class="text-muted mb-1">Completion Date</p>
+                        <h6>{{ loan.completion_date|date:"M d, Y" }}</h6>
+                    </div>
+                    {% endif %}
+
+                    {% if loan.status == 'rejected' %}
+                    <div class="mb-3">
+                        <p class="text-muted mb-1">Rejection Reason</p>
+                        <div class="alert alert-danger">
+                            {{ loan.rejection_reason|default:"No reason provided" }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <p class="text-muted mb-1">Description</p>
+                        <p>{{ loan.description|linebreaks|default:"No description provided" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Repayment Progress & Actions -->
+        <div class="col-md-8 mb-4">
+            {% if loan.status == 'pending' %}
+                <!-- Approval Section -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Loan Approval</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if perms.lending.change_loan %}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <a href="{% url 'approve_loan' loan.id %}" class="btn btn-success w-100">
+                                        <i class="bi bi-check-circle"></i> Approve Loan
+                                    </a>
+                                </div>
+                                <div class="col-md-6">
+                                    <a href="{% url 'reject_loan' loan.id %}" class="btn btn-danger w-100">
+                                        <i class="bi bi-x-circle"></i> Reject Loan
+                                    </a>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info">
+                                This loan is awaiting approval from a manager.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% else %}
+                <!-- Repayment Progress -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Repayment Progress</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="text-center">
+                                    <p class="text-muted mb-1">Total Amount</p>
+                                    <h2>${{ loan.amount|floatformat:2 }}</h2>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="text-center">
+                                    <p class="text-muted mb-1">Remaining Balance</p>
+                                    <h2>${{ remaining_balance|floatformat:2 }}</h2>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="progress mb-3" style="height: 25px;">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                style="width: {{ repayment_progress }}%;" 
+                                aria-valuenow="{{ repayment_progress }}" 
+                                aria-valuemin="0" 
+                                aria-valuemax="100">
+                                {{ repayment_progress|floatformat:1 }}%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Repayment History -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Repayment History</h5>
+                    {% if loan.status == 'active' and perms.lending.add_loanrepayment %}
+                    <a href="{% url 'add_loan_repayment' loan.id %}" class="btn btn-sm btn-primary">
+                        <i class="bi bi-cash"></i> Add Repayment
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if repayments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Method</th>
+                                    <th>Notes</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for repayment in repayments %}
+                                <tr>
+                                    <td>{{ repayment.payment_date|date:"M d, Y" }}</td>
+                                    <td>${{ repayment.amount|floatformat:2 }}</td>
+                                    <td>{{ repayment.payment_method }}</td>
+                                    <td>{{ repayment.notes|default:"--" }}</td>
+                                    <td>
+                                        {% if perms.lending.change_loanrepayment %}
+                                        <a href="{% url 'edit_loan_repayment' repayment.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        {% endif %}
+                                        {% if perms.lending.delete_loanrepayment %}
+                                        <a href="{% url 'delete_loan_repayment' repayment.id %}" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <p class="text-muted">No repayments recorded yet.</p>
+                        {% if loan.status == 'active' and perms.lending.add_loanrepayment %}
+                        <a href="{% url 'add_loan_repayment' loan.id %}" class="btn btn-primary">
+                            <i class="bi bi-cash"></i> Add First Repayment
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
