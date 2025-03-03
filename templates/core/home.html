@@ -1,56 +1,440 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}{{ title }}{% endblock %}
+{% block title %}iPaySlip - Effortless Payroll Processing & Payslip Generation{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/landing.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-8 offset-md-2 text-center">
-        <h1 class="display-4 mb-4">Welcome to Payslip System</h1>
-        <p class="lead">A comprehensive solution for managing payroll, employees, and loans.</p>
+<!-- Hero Section (Above the Fold) -->
+<div class="landing-page">
+    <div class="pattern-overlay"></div>
+    <div class="container landing-content">
+        <div class="landing-header d-flex justify-content-between align-items-center">
+            <a href="{% url 'home' %}" class="landing-logo">
+                <i class="bi bi-cash-coin"></i> iPaySlip
+            </a>
+            <div class="landing-nav d-none d-md-flex">
+                <a href="#features">Features</a>
+                <a href="#pricing">Pricing</a>
+                <a href="#faq">FAQ</a>
+                {% if not user.is_authenticated %}
+                <a href="{% url 'account_login' %}" class="btn btn-sm btn-light rounded-pill px-3">Sign in</a>
+                {% else %}
+                <a href="{% url 'employee_list' %}" class="btn btn-sm btn-light rounded-pill px-3">Dashboard</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="row landing-hero align-items-center">
+            <div class="col-lg-6">
+                <h1 class="landing-title">Effortless Payroll Processing & Payslip Generation</h1>
+                <h2 class="landing-subtitle">Automate Payroll & Tax Deductions with Ease—Save Time & Reduce Errors!</h2>
+                <p class="landing-description">
+                    iPaySlip is a powerful payroll management system built with Django, designed to handle employee payroll, tax calculations, loan deductions, and payslip generation—all in one place.
+                </p>
+                <div class="d-flex flex-wrap">
+                    <a href="{% url 'account_signup' %}" class="btn btn-landing-primary">Get Started for Free</a>
+                    <a href="#demo" class="btn btn-landing-secondary">
+                        <i class="bi bi-play-circle me-2"></i>Watch Demo (2 min)
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 d-none d-lg-block text-center">
+                <img src="{% static 'images/dashboard-preview.png' %}" alt="iPaySlip Dashboard Preview" class="img-fluid rounded shadow-lg" style="max-width: 90%;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Trust Building Section -->
+<section class="trust-section" id="trust">
+    <div class="container">
+        <h2 class="trust-title">Trusted by HR Teams & Businesses</h2>
+        <div class="row">
+            <div class="col-md-3 col-6">
+                <div class="trust-item">
+                    <i class="bi bi-shield-check"></i>
+                    <h3>Secure & Compliant</h3>
+                    <p>End-to-end encryption for all payroll data</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="trust-item">
+                    <i class="bi bi-clock"></i>
+                    <h3>Save 50% Time</h3>
+                    <p>Reduce payroll processing time by half</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="trust-item">
+                    <i class="bi bi-file-earmark-check"></i>
+                    <h3>Tax Compliant</h3>
+                    <p>Automatic tax calculations & deductions</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="trust-item">
+                    <i class="bi bi-people"></i>
+                    <h3>Role-Based Access</h3>
+                    <p>Secure access control for your team</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Problem & Solution Section -->
+<section class="problem-solution" id="solution">
+    <div class="container">
+        <h2 class="section-title">Common Payroll Challenges</h2>
+        <p class="section-subtitle">Many businesses struggle with manual payroll processes, tax miscalculations, and compliance risks.</p>
         
-        <div class="card bg-light my-5">
-            <div class="card-body">
-                <h2>Features</h2>
-                <div class="row my-4">
-                    <div class="col-md-4">
-                        <div class="card h-100">
-                            <div class="card-body">
-                                <h3 class="h5"><i class="bi bi-people-fill text-primary me-2"></i>Employee Management</h3>
-                                <p>Add, update, and track employee information with ease.</p>
+        <div class="row mt-5">
+            <div class="col-md-6">
+                <div class="problem-card">
+                    <div class="problem-icon">
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </div>
+                    <h3>Manual Payroll Processing</h3>
+                    <p>Are you still calculating payroll manually? This is time-consuming and prone to errors that can cost your business.</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="problem-card">
+                    <div class="solution-icon">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                    <h3>Automated Payroll Processing</h3>
+                    <p>iPaySlip automates the entire payroll process, reducing human errors and saving valuable time for your HR team.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="problem-card">
+                    <div class="problem-icon">
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </div>
+                    <h3>Tax Calculation Errors</h3>
+                    <p>Miscalculating taxes can lead to compliance issues and penalties from tax authorities.</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="problem-card">
+                    <div class="solution-icon">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                    <h3>Tiered Tax Calculation</h3>
+                    <p>Our system automatically calculates taxes based on the latest tax brackets, ensuring compliance and accuracy.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="problem-card">
+                    <div class="problem-icon">
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </div>
+                    <h3>Loan Management Complexity</h3>
+                    <p>Tracking employee loans and ensuring correct deductions is a complex task prone to errors.</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="problem-card">
+                    <div class="solution-icon">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                    <h3>Integrated Loan Management</h3>
+                    <p>iPaySlip tracks employee loans and automatically applies the correct deductions to each payroll cycle.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section" id="features">
+    <div class="container">
+        <h2 class="section-title">Powerful Features for Efficient Payroll Management</h2>
+        <p class="section-subtitle">iPaySlip offers a comprehensive set of features designed to streamline your payroll process.</p>
+        
+        <div class="row mt-5">
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <h3 class="feature-title">Employee Management</h3>
+                    <p class="feature-description">Add, edit, and manage employee records in one place. Track employment history, salary changes, and personal details.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-calculator"></i>
+                    </div>
+                    <h3 class="feature-title">Payroll Processing</h3>
+                    <p class="feature-description">Automate salary calculations, tax deductions, and compliance reporting. Process payroll in just a few clicks.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-bank"></i>
+                    </div>
+                    <h3 class="feature-title">Loan Management</h3>
+                    <p class="feature-description">Track employee loans & ensure accurate payroll deductions. Automatically apply loan repayments to each payroll cycle.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-file-earmark-pdf"></i>
+                    </div>
+                    <h3 class="feature-title">Payslip Generation</h3>
+                    <p class="feature-description">Generate professional, tax-compliant payslips instantly. Download as PDF or send directly to employees.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-shield-lock"></i>
+                    </div>
+                    <h3 class="feature-title">Role-Based Access</h3>
+                    <p class="feature-description">Secure payroll data by assigning user roles (HR, Finance, Admin). Control who can view and edit sensitive information.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-graph-up"></i>
+                    </div>
+                    <h3 class="feature-title">Reporting & Analytics</h3>
+                    <p class="feature-description">Generate comprehensive reports on payroll expenses, tax deductions, and more. Make data-driven decisions.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing Section -->
+<section class="pricing-section" id="pricing">
+    <div class="container">
+        <h2 class="section-title">Simple, Transparent Pricing</h2>
+        <p class="section-subtitle">Choose the plan that works best for your business needs.</p>
+        
+        <div class="row mt-5">
+            <div class="col-md-4 mb-4">
+                <div class="pricing-card">
+                    <h3 class="pricing-title">Free Trial</h3>
+                    <div class="pricing-price">$0 <span>/month</span></div>
+                    <ul class="pricing-features">
+                        <li><i class="bi bi-check-circle"></i> Up to 5 employees</li>
+                        <li><i class="bi bi-check-circle"></i> Basic payroll processing</li>
+                        <li><i class="bi bi-check-circle"></i> PDF payslip generation</li>
+                        <li><i class="bi bi-x-circle text-muted"></i> Loan management</li>
+                        <li><i class="bi bi-x-circle text-muted"></i> Advanced reporting</li>
+                        <li><i class="bi bi-x-circle text-muted"></i> Role-based access</li>
+                    </ul>
+                    <a href="{% url 'account_signup' %}" class="btn btn-outline-primary w-100">Start Free Trial</a>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="pricing-card highlighted">
+                    <h3 class="pricing-title">Pro</h3>
+                    <div class="pricing-price">$49 <span>/month</span></div>
+                    <ul class="pricing-features">
+                        <li><i class="bi bi-check-circle"></i> Up to 50 employees</li>
+                        <li><i class="bi bi-check-circle"></i> Full payroll automation</li>
+                        <li><i class="bi bi-check-circle"></i> PDF payslip generation</li>
+                        <li><i class="bi bi-check-circle"></i> Loan management</li>
+                        <li><i class="bi bi-check-circle"></i> Basic reporting</li>
+                        <li><i class="bi bi-check-circle"></i> Role-based access</li>
+                    </ul>
+                    <a href="{% url 'account_signup' %}" class="btn btn-primary w-100">Get Started</a>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="pricing-card">
+                    <h3 class="pricing-title">Enterprise</h3>
+                    <div class="pricing-price">Custom <span>pricing</span></div>
+                    <ul class="pricing-features">
+                        <li><i class="bi bi-check-circle"></i> Unlimited employees</li>
+                        <li><i class="bi bi-check-circle"></i> Full payroll automation</li>
+                        <li><i class="bi bi-check-circle"></i> PDF payslip generation</li>
+                        <li><i class="bi bi-check-circle"></i> Advanced loan management</li>
+                        <li><i class="bi bi-check-circle"></i> Advanced reporting & analytics</li>
+                        <li><i class="bi bi-check-circle"></i> Custom integrations</li>
+                    </ul>
+                    <a href="#" class="btn btn-outline-primary w-100">Contact Sales</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="faq-section" id="faq">
+    <div class="container">
+        <h2 class="section-title">Frequently Asked Questions</h2>
+        <p class="section-subtitle">Find answers to common questions about iPaySlip.</p>
+        
+        <div class="row mt-5">
+            <div class="col-lg-8 mx-auto">
+                <div class="accordion" id="faqAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingOne">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                Do I need technical knowledge to use iPaySlip?
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                <p>No! iPaySlip is designed for non-technical users. Simply log in and start processing payroll. The intuitive interface guides you through each step of the payroll process.</p>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="card h-100">
-                            <div class="card-body">
-                                <h3 class="h5"><i class="bi bi-cash-stack text-success me-2"></i>Payroll Processing</h3>
-                                <p>Generate payslips with automated deduction calculations.</p>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingTwo">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                Is my payroll data secure?
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                <p>Yes! We use end-to-end encryption and role-based access control to protect sensitive payroll data. Our system is designed with security as a top priority, ensuring your employee information remains confidential.</p>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="card h-100">
-                            <div class="card-body">
-                                <h3 class="h5"><i class="bi bi-bank text-warning me-2"></i>Loan Management</h3>
-                                <p>Manage employee loans and automated repayment schedules.</p>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingThree">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                Does iPaySlip support tax laws in my country?
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                <p>iPaySlip is customizable to support different tax brackets and can be tailored to your location. The system allows you to configure tax rates and rules according to your country's regulations.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingFour">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                Can I import my existing employee data?
+                            </button>
+                        </h2>
+                        <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                <p>Yes, iPaySlip supports importing employee data from CSV files. You can easily migrate your existing employee records into the system without manual data entry.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingFive">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                                How does the loan management feature work?
+                            </button>
+                        </h2>
+                        <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                <p>Our loan management feature allows you to record employee loans, set up repayment schedules, and automatically deduct installments from each payroll cycle. The system tracks the remaining balance and adjusts deductions accordingly.</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        
-        {% if not user.is_authenticated %}
-        <div class="mt-4">
-            <a href="{% url 'account_login' %}" class="btn btn-primary btn-lg me-2">Login</a>
-            <a href="{% url 'account_signup' %}" class="btn btn-outline-secondary btn-lg">Register</a>
-        </div>
-        {% else %}
-        <div class="mt-4">
-            <a href="{% url 'employee_list' %}" class="btn btn-primary btn-lg me-2">Manage Employees</a>
-            <a href="{% url 'payroll_list' %}" class="btn btn-success btn-lg">Process Payroll</a>
-        </div>
-        {% endif %}
     </div>
-</div>
+</section>
+
+<!-- Final CTA Section -->
+<section class="cta-section">
+    <div class="container">
+        <div class="cta-content">
+            <h2 class="cta-title">Get Started with Hassle-Free Payroll Automation Today</h2>
+            <p class="cta-subtitle">Join hundreds of businesses that have simplified their payroll process with iPaySlip. Try it free for 30 days!</p>
+            <a href="{% url 'account_signup' %}" class="btn btn-landing-primary btn-lg">Sign Up for Free</a>
+            <p class="text-white-50 mt-3">No credit card required. Cancel anytime.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="landing-footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-4 mb-4">
+                <a href="#" class="footer-logo">
+                    <i class="bi bi-cash-coin"></i> iPaySlip
+                </a>
+                <p class="footer-description">A comprehensive payroll management system designed to simplify your payroll process and ensure compliance.</p>
+            </div>
+            <div class="col-lg-2 col-md-4 mb-4">
+                <h4 class="footer-title">Company</h4>
+                <ul class="footer-links">
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Careers</a></li>
+                    <li><a href="#">Blog</a></li>
+                    <li><a href="#">Press</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-2 col-md-4 mb-4">
+                <h4 class="footer-title">Product</h4>
+                <ul class="footer-links">
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#pricing">Pricing</a></li>
+                    <li><a href="#">Security</a></li>
+                    <li><a href="#">Enterprise</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-4 col-md-4 mb-4">
+                <h4 class="footer-title">Contact Us</h4>
+                <ul class="footer-contact">
+                    <li>
+                        <i class="bi bi-envelope"></i>
+                        <span>support@ipayslip.com</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-telephone"></i>
+                        <span>+1 (555) 123-4567</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-geo-alt"></i>
+                        <span>123 Business Street, Suite 100<br>San Francisco, CA 94107</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <div class="container">
+            <p>&copy; {% now "Y" %} iPaySlip. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Remove the container class from the main element to allow full-width landing page
+    document.addEventListener('DOMContentLoaded', function() {
+        const mainElement = document.querySelector('main');
+        if (mainElement) {
+            mainElement.classList.remove('container');
+            mainElement.classList.remove('my-4');
+        }
+        
+        // Remove the default footer for the landing page
+        const defaultFooter = document.querySelector('footer:not(.landing-footer)');
+        if (defaultFooter) {
+            defaultFooter.style.display = 'none';
+        }
+    });
+</script>
 {% endblock %} 

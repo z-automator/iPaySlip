@@ -1,0 +1,83 @@
+<svg width="800" height="500" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="800" height="500" fill="#f8f9fa" rx="10" ry="10" />
+  
+  <!-- Header -->
+  <rect width="800" height="60" fill="#0062cc" />
+  <text x="30" y="38" font-family="Arial" font-size="20" fill="white">iPaySlip Dashboard</text>
+  
+  <!-- Sidebar -->
+  <rect x="0" y="60" width="200" height="440" fill="#f0f2f5" />
+  
+  <!-- Sidebar Menu Items -->
+  <rect x="20" y="100" width="160" height="40" fill="#0062cc" rx="5" ry="5" />
+  <text x="50" y="125" font-family="Arial" font-size="14" fill="white">Dashboard</text>
+  
+  <rect x="20" y="150" width="160" height="40" fill="#ffffff" rx="5" ry="5" />
+  <text x="50" y="175" font-family="Arial" font-size="14" fill="#333">Employees</text>
+  
+  <rect x="20" y="200" width="160" height="40" fill="#ffffff" rx="5" ry="5" />
+  <text x="50" y="225" font-family="Arial" font-size="14" fill="#333">Payroll</text>
+  
+  <rect x="20" y="250" width="160" height="40" fill="#ffffff" rx="5" ry="5" />
+  <text x="50" y="275" font-family="Arial" font-size="14" fill="#333">Loans</text>
+  
+  <rect x="20" y="300" width="160" height="40" fill="#ffffff" rx="5" ry="5" />
+  <text x="50" y="325" font-family="Arial" font-size="14" fill="#333">Reports</text>
+  
+  <!-- Main Content Area -->
+  <text x="230" y="100" font-family="Arial" font-size="24" font-weight="bold" fill="#333">Dashboard Overview</text>
+  
+  <!-- Stats Cards -->
+  <rect x="230" y="120" width="170" height="100" fill="white" rx="5" ry="5" stroke="#ddd" stroke-width="1" />
+  <text x="250" y="150" font-family="Arial" font-size="14" fill="#666">Total Employees</text>
+  <text x="250" y="185" font-family="Arial" font-size="24" font-weight="bold" fill="#333">124</text>
+  
+  <rect x="420" y="120" width="170" height="100" fill="white" rx="5" ry="5" stroke="#ddd" stroke-width="1" />
+  <text x="440" y="150" font-family="Arial" font-size="14" fill="#666">Payroll This Month</text>
+  <text x="440" y="185" font-family="Arial" font-size="24" font-weight="bold" fill="#333">$45,280</text>
+  
+  <rect x="610" y="120" width="170" height="100" fill="white" rx="5" ry="5" stroke="#ddd" stroke-width="1" />
+  <text x="630" y="150" font-family="Arial" font-size="14" fill="#666">Active Loans</text>
+  <text x="630" y="185" font-family="Arial" font-size="24" font-weight="bold" fill="#333">18</text>
+  
+  <!-- Recent Payroll Table -->
+  <rect x="230" y="240" width="550" height="240" fill="white" rx="5" ry="5" stroke="#ddd" stroke-width="1" />
+  <text x="250" y="270" font-family="Arial" font-size="16" font-weight="bold" fill="#333">Recent Payroll Activity</text>
+  
+  <!-- Table Header -->
+  <rect x="250" y="290" width="510" height="30" fill="#f8f9fa" />
+  <text x="270" y="310" font-family="Arial" font-size="12" fill="#666">Employee</text>
+  <text x="400" y="310" font-family="Arial" font-size="12" fill="#666">Date</text>
+  <text x="500" y="310" font-family="Arial" font-size="12" fill="#666">Amount</text>
+  <text x="600" y="310" font-family="Arial" font-size="12" fill="#666">Status</text>
+  
+  <!-- Table Rows -->
+  <line x1="250" y1="320" x2="760" y2="320" stroke="#eee" stroke-width="1" />
+  <text x="270" y="340" font-family="Arial" font-size="12" fill="#333">John Smith</text>
+  <text x="400" y="340" font-family="Arial" font-size="12" fill="#333">Feb 28, 2025</text>
+  <text x="500" y="340" font-family="Arial" font-size="12" fill="#333">$3,450.00</text>
+  <rect x="600" y="328" width="70" height="20" fill="#d4edda" rx="10" ry="10" />
+  <text x="615" y="342" font-family="Arial" font-size="11" fill="#155724">Paid</text>
+  
+  <line x1="250" y1="350" x2="760" y2="350" stroke="#eee" stroke-width="1" />
+  <text x="270" y="370" font-family="Arial" font-size="12" fill="#333">Sarah Johnson</text>
+  <text x="400" y="370" font-family="Arial" font-size="12" fill="#333">Feb 28, 2025</text>
+  <text x="500" y="370" font-family="Arial" font-size="12" fill="#333">$4,200.00</text>
+  <rect x="600" y="358" width="70" height="20" fill="#d4edda" rx="10" ry="10" />
+  <text x="615" y="372" font-family="Arial" font-size="11" fill="#155724">Paid</text>
+  
+  <line x1="250" y1="380" x2="760" y2="380" stroke="#eee" stroke-width="1" />
+  <text x="270" y="400" font-family="Arial" font-size="12" fill="#333">Michael Brown</text>
+  <text x="400" y="400" font-family="Arial" font-size="12" fill="#333">Feb 28, 2025</text>
+  <text x="500" y="400" font-family="Arial" font-size="12" fill="#333">$3,800.00</text>
+  <rect x="600" y="388" width="70" height="20" fill="#d4edda" rx="10" ry="10" />
+  <text x="615" y="402" font-family="Arial" font-size="11" fill="#155724">Paid</text>
+  
+  <line x1="250" y1="410" x2="760" y2="410" stroke="#eee" stroke-width="1" />
+  <text x="270" y="430" font-family="Arial" font-size="12" fill="#333">Emily Davis</text>
+  <text x="400" y="430" font-family="Arial" font-size="12" fill="#333">Feb 28, 2025</text>
+  <text x="500" y="430" font-family="Arial" font-size="12" fill="#333">$3,950.00</text>
+  <rect x="600" y="418" width="70" height="20" fill="#f8d7da" rx="10" ry="10" />
+  <text x="610" y="432" font-family="Arial" font-size="11" fill="#721c24">Pending</text>
+</svg> 
