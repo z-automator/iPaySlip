@@ -55,6 +55,56 @@
                                 {% endif %}
                             </div>
                             
+                            {% if not object and has_template %}
+                            <div class="col-md-12">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="use_template" name="use_template" checked>
+                                    <label class="form-check-label" for="use_template">
+                                        Use previous payroll entries as template
+                                    </label>
+                                    <div class="form-text">This will automatically add all entries from the employee's last payroll.</div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-12" id="template_entries_preview">
+                                <div class="card">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0">Template Entries Preview</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h6 class="border-bottom pb-2 mb-3">Earnings</h6>
+                                                <ul class="list-group list-group-flush">
+                                                    {% for entry in template_entries %}
+                                                        {% if not entry.is_deduction %}
+                                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                            {{ entry.name }}
+                                                            <span class="badge bg-success rounded-pill">${{ entry.amount|floatformat:2 }}</span>
+                                                        </li>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6 class="border-bottom pb-2 mb-3">Deductions</h6>
+                                                <ul class="list-group list-group-flush">
+                                                    {% for entry in template_entries %}
+                                                        {% if entry.is_deduction %}
+                                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                            {{ entry.name }}
+                                                            <span class="badge bg-danger rounded-pill">${{ entry.amount|floatformat:2 }}</span>
+                                                        </li>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
                             <div class="col-md-4">
                                 <label for="{{ form.gross_salary.id_for_label }}" class="form-label">Gross Salary</label>
                                 {{ form.gross_salary }}
@@ -346,94 +396,101 @@
 {% endif %}
 
 {% block extra_js %}
-{% if object and object.pk %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Edit entry
-        const editButtons = document.querySelectorAll('.edit-entry');
-        editButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const modal = new bootstrap.Modal(document.getElementById('addEntryModal'));
-                document.getElementById('addEntryModalLabel').textContent = 'Edit Payroll Entry';
-                document.getElementById('entry_id').value = this.dataset.entryId;
-                document.getElementById('name').value = this.dataset.entryName;
-                document.getElementById('description').value = this.dataset.entryDescription;
-                document.getElementById('amount').value = this.dataset.entryAmount;
-                document.getElementById('is_deduction').checked = this.dataset.entryIsDeduction === 'true';
-                modal.show();
-            });
-        });
-        
-        // Add standard item
-        const addStandardButtons = document.querySelectorAll('.add-standard-item');
-        addStandardButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const modal = new bootstrap.Modal(document.getElementById('addEntryModal'));
-                document.getElementById('addEntryModalLabel').textContent = 'Add Standard Item';
-                document.getElementById('entry_id').value = '';
-                document.getElementById('name').value = this.dataset.itemName;
-                document.getElementById('description').value = this.dataset.itemDescription;
-                
-                // Calculate amount based on calculation method
-                let amount = parseFloat(this.dataset.itemValue);
-                if (this.dataset.itemCalculation === 'percentage') {
-                    // For percentage, we'd need the base salary to calculate
-                    // This is simplified - in a real app you'd get the base salary
-                    amount = amount.toFixed(2);
-                }
-                
-                document.getElementById('amount').value = amount;
-                document.getElementById('is_deduction').checked = this.dataset.itemType === 'deduction';
-                modal.show();
-            });
-        });
-        
-        // Delete entry (would need AJAX implementation)
-        const deleteButtons = document.querySelectorAll('.delete-entry');
-        deleteButtons.forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                if (confirm('Are you sure you want to delete this entry?')) {
-                    // Here you would send an AJAX request to delete the entry
-                    // For now, we'll just redirect to a URL
-                    window.location.href = '{% url "delete_payroll_entry" 0 %}'.replace('0', this.dataset.entryId);
-                }
-            });
-        });
-    });
-</script>
-{% endif %}
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Get the salary input fields
-        const grossSalaryInput = document.getElementById('{{ form.gross_salary.id_for_label }}');
-        const totalDeductionsInput = document.getElementById('{{ form.total_deductions.id_for_label }}');
-        const netSalaryInput = document.getElementById('{{ form.net_salary.id_for_label }}');
-        
-        // Function to calculate net salary
-        function calculateNetSalary() {
-            if (grossSalaryInput && totalDeductionsInput && netSalaryInput) {
-                const grossSalary = parseFloat(grossSalaryInput.value) || 0;
-                const totalDeductions = parseFloat(totalDeductionsInput.value) || 0;
-                const netSalary = grossSalary - totalDeductions;
-                
-                // Update net salary field
-                netSalaryInput.value = netSalary.toFixed(2);
+    $(document).ready(function() {
+        // Handle template checkbox toggle
+        $('#use_template').change(function() {
+            if($(this).is(':checked')) {
+                $('#template_entries_preview').show();
+            } else {
+                $('#template_entries_preview').hide();
             }
-        }
+        });
         
-        // Add event listeners to recalculate when values change
-        if (grossSalaryInput) {
-            grossSalaryInput.addEventListener('input', calculateNetSalary);
-        }
+        // Handle employee selection change
+        $('#id_employee').change(function() {
+            var employeeId = $(this).val();
+            if(employeeId) {
+                // Redirect to the same page with employee parameter
+                window.location.href = "{% url 'payroll_create' %}?employee=" + employeeId;
+            }
+        });
         
-        if (totalDeductionsInput) {
-            totalDeductionsInput.addEventListener('input', calculateNetSalary);
-        }
+        // Initialize select2 for dropdowns
+        $('.select2').select2({
+            theme: 'bootstrap-5',
+            width: '100%'
+        });
         
-        // Initial calculation
-        calculateNetSalary();
+        // Handle delete entry links
+        $('.delete-entry').click(function(e) {
+            e.preventDefault();
+            var entryId = $(this).data('entry-id');
+            if(confirm('Are you sure you want to delete this entry?')) {
+                window.location.href = "{% url 'delete_payroll_entry' 0 %}".replace('0', entryId);
+            }
+        });
+        
+        // Handle edit entry buttons
+        $('.edit-entry').click(function() {
+            var entryId = $(this).data('entry-id');
+            var entryName = $(this).data('entry-name');
+            var entryDescription = $(this).data('entry-description');
+            var entryAmount = $(this).data('entry-amount');
+            var entryIsDeduction = $(this).data('entry-is-deduction');
+            
+            // Reset the form
+            $('#entryForm')[0].reset();
+            
+            // Populate the modal with entry data
+            $('#entry_id').val(entryId);
+            $('#name').val(entryName);
+            $('#description').val(entryDescription);
+            $('#amount').val(entryAmount);
+            $('#is_deduction').prop('checked', entryIsDeduction === 'true');
+            
+            // Update modal title
+            $('#addEntryModalLabel').text('Edit Payroll Entry');
+            
+            // Show the modal
+            var modal = new bootstrap.Modal(document.getElementById('addEntryModal'));
+            modal.show();
+        });
+        
+        // Handle add standard item buttons
+        $('.add-standard-item').click(function() {
+            var itemName = $(this).data('item-name');
+            var itemDescription = $(this).data('item-description');
+            var itemType = $(this).data('item-type');
+            var itemValue = $(this).data('item-value');
+            var itemCalculation = $(this).data('item-calculation');
+            
+            // Calculate amount based on calculation method
+            var amount = parseFloat(itemValue);
+            if (itemCalculation === 'percentage') {
+                // For percentage items, we'd need to calculate based on gross salary
+                // This is simplified - in a real app you'd get the base salary
+                var grossSalary = parseFloat($('#id_gross_salary').val()) || 0;
+                amount = (grossSalary * amount / 100).toFixed(2);
+            }
+            
+            // Reset the form
+            $('#entryForm')[0].reset();
+            
+            // Populate the modal with standard item data
+            $('#entry_id').val('');
+            $('#name').val(itemName);
+            $('#description').val(itemDescription);
+            $('#amount').val(amount);
+            $('#is_deduction').prop('checked', itemType === 'deduction');
+            
+            // Update modal title
+            $('#addEntryModalLabel').text('Add Standard Item');
+            
+            // Show the modal
+            var modal = new bootstrap.Modal(document.getElementById('addEntryModal'));
+            modal.show();
+        });
     });
 </script>
 {% endblock %}

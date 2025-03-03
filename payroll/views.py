@@ -11,7 +11,7 @@ from django.db import transaction
 from decimal import Decimal
 
 from employees.models import Employee
-from .models import PayrollPeriod, StandardPayrollItem, Payroll, PayrollEntry, TaxTier
+from .models import PayrollPeriod, StandardPayrollItem, Payroll, PayrollEntry, TaxTier, EmployeePayrollTemplate
 from .forms import PayrollPeriodForm, StandardPayrollItemForm, PayrollForm, PayrollEntryForm, PayrollProcessForm, TaxTierForm
 from .utils import generate_payslip_pdf, generate_payroll_report, calculate_income_tax
 
@@ -98,13 +98,24 @@ class PayrollCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView)
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['title'] = 'Create New Payroll'
+        context['title'] = 'Create Payroll'
         context['button_label'] = 'Create Payroll'
         
-        # Add entry formset if payroll instance exists
-        if self.object:
-            context['entry_form'] = PayrollEntryForm(initial={'payroll': self.object})
-        
+        # If employee is preselected, show their template entries
+        employee_id = self.request.GET.get('employee')
+        if employee_id:
+            try:
+                employee = Employee.objects.get(pk=employee_id)
+                # Get template if exists
+                try:
+                    template = employee.payroll_template
+                    context['template_entries'] = template.get_entries()
+                    context['has_template'] = True
+                except:
+                    context['has_template'] = False
+            except Employee.DoesNotExist:
+                pass
+                
         return context
     
     def form_valid(self, form):
@@ -121,19 +132,48 @@ class PayrollCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView)
                 
             payroll.save()
             
-            # Add basic salary entry automatically
-            PayrollEntry.objects.create(
-                payroll=payroll,
-                name='Basic Salary',
-                description='Monthly base salary',
-                amount=payroll.employee.base_salary,
-                is_deduction=False
-            )
+            # Check if we should use template entries
+            use_template = self.request.POST.get('use_template') == 'on'
             
+            if use_template:
+                # Try to get template for this employee
+                try:
+                    template = payroll.employee.payroll_template
+                    # Copy template entries to payroll
+                    for entry in template.get_entries():
+                        PayrollEntry.objects.create(
+                            payroll=payroll,
+                            name=entry.name,
+                            description=entry.description,
+                            amount=entry.amount,
+                            is_deduction=entry.is_deduction
+                        )
+                    messages.success(self.request, "Payroll created with template entries.")
+                except:
+                    # If no template exists, add basic salary entry
+                    self._add_basic_salary_entry(payroll)
+                    messages.info(self.request, "No template found. Added basic salary entry.")
+            else:
+                # Add basic salary entry automatically
+                self._add_basic_salary_entry(payroll)
+                
+            # Update payroll totals
+            update_payroll_totals(payroll)
+                
             messages.success(self.request, "Payroll created successfully.")
             return redirect('payroll_update', pk=payroll.pk)
         
         return super().form_valid(form)
+        
+    def _add_basic_salary_entry(self, payroll):
+        """Add basic salary entry to payroll"""
+        PayrollEntry.objects.create(
+            payroll=payroll,
+            name='Basic Salary',
+            description='Monthly base salary',
+            amount=payroll.employee.base_salary,
+            is_deduction=False
+        )
 
 class PayrollUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = Payroll
@@ -162,24 +202,20 @@ class PayrollUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView)
     
     def form_valid(self, form):
         with transaction.atomic():
-            payroll = form.save(commit=False)
+            payroll = form.save()
             
-            # Update totals from entries
-            earnings_sum = payroll.entries.filter(is_deduction=False).aggregate(total=Sum('amount'))['total'] or 0
-            deductions_sum = payroll.entries.filter(is_deduction=True).aggregate(total=Sum('amount'))['total'] or 0
+            # Update payroll totals
+            update_payroll_totals(payroll)
             
-            payroll.gross_salary = earnings_sum
-            payroll.total_deductions = deductions_sum
-            payroll.net_salary = earnings_sum - deductions_sum
-            
-            # If completing payroll, set processed date
-            if payroll.status == Payroll.COMPLETED and not payroll.processed_date:
-                payroll.processed_date = timezone.now()
-                
-            payroll.save()
+            # If payroll is completed, update the employee's template
+            if payroll.status == Payroll.COMPLETED:
+                template = EmployeePayrollTemplate.get_or_create_for_employee(payroll.employee)
+                template.update_from_payroll(payroll)
+                messages.info(self.request, "Employee payroll template updated for future use.")
             
             messages.success(self.request, "Payroll updated successfully.")
-            return super().form_valid(form)
+            
+        return super().form_valid(form)
 
 class PayrollDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = Payroll
@@ -454,68 +490,91 @@ class PayrollProcessView(LoginRequiredMixin, PermissionRequiredMixin, FormView):
                 status=Payroll.PENDING
             )
             
-            # Add standard earnings (base salary)
-            PayrollEntry.objects.create(
-                payroll=payroll,
-                name="Base Salary",
-                description="Monthly base salary",
-                amount=employee.base_salary,
-                is_deduction=False
-            )
-            
-            # Calculate and add income tax
-            tax_amount = calculate_income_tax(employee.base_salary)
-            if tax_amount > Decimal('0.00'):
-                PayrollEntry.objects.create(
-                    payroll=payroll,
-                    name="Income Tax",
-                    description="Calculated based on tax brackets",
-                    amount=tax_amount,
-                    is_deduction=True
-                )
-            
-            # Add any active loan repayments
-            from lending.models import Loan
-            active_loans = Loan.objects.filter(
-                employee=employee, 
-                status=Loan.ACTIVE
-            )
-            
-            for loan in active_loans:
-                # Skip fully paid loans
-                if loan.is_fully_paid:
-                    continue
-                    
-                # Get next unpaid payment
-                next_payment = loan.get_next_payment()
-                if next_payment:
+            # Check if employee has a payroll template
+            try:
+                template = employee.payroll_template
+                # Use template entries
+                for entry in template.get_entries():
                     PayrollEntry.objects.create(
                         payroll=payroll,
-                        name=f"Loan Repayment - {loan.loan_type}",
-                        description=f"Payment {next_payment.payment_number} of {loan.term_months}",
-                        amount=next_payment.amount,
-                        is_deduction=True
+                        name=entry.name,
+                        description=entry.description,
+                        amount=entry.amount,
+                        is_deduction=entry.is_deduction
                     )
-                    
-                    # Mark payment as paid
-                    next_payment.is_paid = True
-                    next_payment.paid_date = timezone.now().date()
-                    next_payment.payroll = payroll
-                    next_payment.save()
-                    
-                    # Check if all payments are paid, update loan status if needed
-                    if loan.is_fully_paid:
-                        loan.status = Loan.COMPLETED
-                        loan.actual_end_date = timezone.now().date()
-                        loan.save()
+                # Add loan repayments that might not be in the template
+                self._add_loan_repayments(payroll, employee)
+            except:
+                # No template, use standard process
+                self._process_standard_payroll(payroll, employee)
             
             # Update payroll totals
             update_payroll_totals(payroll)
-            
             payrolls_created.append(payroll)
-            messages.success(self.request, f"Payroll created for {employee.full_name}")
+            
+        return len(payrolls_created)
+    
+    def _process_standard_payroll(self, payroll, employee):
+        """Process payroll using standard method without template"""
+        # Add standard earnings (base salary)
+        PayrollEntry.objects.create(
+            payroll=payroll,
+            name="Base Salary",
+            description="Monthly base salary",
+            amount=employee.base_salary,
+            is_deduction=False
+        )
         
-        return payrolls_created
+        # Calculate and add income tax
+        tax_amount = calculate_income_tax(employee.base_salary)
+        if tax_amount > Decimal('0.00'):
+            PayrollEntry.objects.create(
+                payroll=payroll,
+                name="Income Tax",
+                description="Calculated based on tax brackets",
+                amount=tax_amount,
+                is_deduction=True
+            )
+        
+        # Add loan repayments
+        self._add_loan_repayments(payroll, employee)
+    
+    def _add_loan_repayments(self, payroll, employee):
+        """Add loan repayments to payroll"""
+        from lending.models import Loan
+        # Get active loans only - don't filter by is_fully_paid since it's a property
+        active_loans = Loan.objects.filter(
+            employee=employee, 
+            status=Loan.ACTIVE
+        )
+        
+        for loan in active_loans:
+            # Skip fully paid loans - check the property here
+            if loan.is_fully_paid:
+                continue
+                
+            # Get next unpaid payment
+            next_payment = loan.get_next_payment()
+            if next_payment:
+                PayrollEntry.objects.create(
+                    payroll=payroll,
+                    name=f"Loan Repayment - {loan.loan_type}",
+                    description=f"Payment {next_payment.payment_number} of {loan.term_months}",
+                    amount=next_payment.amount,
+                    is_deduction=True
+                )
+                
+                # Mark payment as paid
+                next_payment.is_paid = True
+                next_payment.paid_date = timezone.now().date()
+                next_payment.payroll = payroll
+                next_payment.save()
+                
+                # Check if all payments are paid, update loan status if needed
+                if loan.is_fully_paid:
+                    loan.status = Loan.COMPLETED
+                    loan.actual_end_date = timezone.now().date()
+                    loan.save()
 
 class TaxTierListView(LoginRequiredMixin, ListView):
     model = TaxTier

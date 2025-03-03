@@ -185,3 +185,52 @@ class TaxTier(models.Model):
                 if (self.min_income <= tier.max_income and 
                     self.max_income >= tier.min_income):
                     raise ValidationError(f"This tier overlaps with {tier}")
+
+class EmployeePayrollTemplate(models.Model):
+    """Stores historical payroll entries for each employee to speed up payroll creation"""
+    employee = models.OneToOneField(Employee, on_delete=models.CASCADE, related_name='payroll_template')
+    last_updated = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"Payroll template for {self.employee}"
+    
+    def get_entries(self):
+        """Get all template entries for this employee"""
+        return self.entries.all()
+    
+    def update_from_payroll(self, payroll):
+        """Update template entries from a payroll"""
+        # Clear existing template entries
+        self.entries.all().delete()
+        
+        # Create new template entries from payroll entries
+        for entry in payroll.entries.all():
+            EmployeePayrollTemplateEntry.objects.create(
+                template=self,
+                name=entry.name,
+                description=entry.description,
+                amount=entry.amount,
+                is_deduction=entry.is_deduction
+            )
+    
+    @classmethod
+    def get_or_create_for_employee(cls, employee):
+        """Get or create a template for an employee"""
+        template, created = cls.objects.get_or_create(employee=employee)
+        return template
+
+class EmployeePayrollTemplateEntry(models.Model):
+    """Individual entries in an employee's payroll template"""
+    template = models.ForeignKey(EmployeePayrollTemplate, on_delete=models.CASCADE, related_name='entries')
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    is_deduction = models.BooleanField(default=False)
+    
+    def __str__(self):
+        entry_type = "Deduction" if self.is_deduction else "Earning"
+        return f"{self.name} ({entry_type}): {self.amount}"
+    
+    class Meta:
+        ordering = ['-is_deduction', 'name']
+        verbose_name_plural = "Template entries"
