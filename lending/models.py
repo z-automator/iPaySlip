@@ -109,9 +109,28 @@ class Loan(models.Model):
             
         super().save(*args, **kwargs)
 
+    @property
+    def is_fully_paid(self):
+        """Check if all loan payments are paid"""
+        # If loan is completed, it's fully paid
+        if self.status == self.COMPLETED:
+            return True
+            
+        # If there are no payments, it's not fully paid
+        if not self.payments.exists():
+            return False
+            
+        # Check if all payments are paid
+        return self.payments.filter(is_paid=False).count() == 0
+    
+    def get_next_payment(self):
+        """Get the next unpaid payment"""
+        return self.payments.filter(is_paid=False).order_by('payment_date').first()
+
 class LoanPayment(models.Model):
     """Individual loan repayment installments"""
     loan = models.ForeignKey(Loan, on_delete=models.CASCADE, related_name='payments')
+    payment_number = models.PositiveIntegerField(default=1)
     payment_date = models.DateField()
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     is_paid = models.BooleanField(default=False)
@@ -129,9 +148,12 @@ class LoanPayment(models.Model):
     payment_source = models.CharField(max_length=20, choices=PAYMENT_SOURCE_CHOICES, default=PAYROLL)
     payroll_reference = models.CharField(max_length=100, blank=True)
     
+    # Link to payroll if paid through payroll
+    payroll = models.ForeignKey('payroll.Payroll', on_delete=models.SET_NULL, null=True, blank=True, related_name='loan_payments')
+    
     def __str__(self):
         status = "Paid" if self.is_paid else "Pending"
-        return f"Payment for {self.loan.employee} - {self.payment_date} ({status})"
+        return f"Payment {self.payment_number} for {self.loan.employee} - {self.payment_date} ({status})"
     
     class Meta:
         ordering = ['payment_date']

@@ -478,11 +478,14 @@ class PayrollProcessView(LoginRequiredMixin, PermissionRequiredMixin, FormView):
             from lending.models import Loan
             active_loans = Loan.objects.filter(
                 employee=employee, 
-                status=Loan.APPROVED,
-                is_fully_paid=False
+                status=Loan.ACTIVE
             )
             
             for loan in active_loans:
+                # Skip fully paid loans
+                if loan.is_fully_paid:
+                    continue
+                    
                 # Get next unpaid payment
                 next_payment = loan.get_next_payment()
                 if next_payment:
@@ -496,13 +499,14 @@ class PayrollProcessView(LoginRequiredMixin, PermissionRequiredMixin, FormView):
                     
                     # Mark payment as paid
                     next_payment.is_paid = True
-                    next_payment.payment_date = timezone.now().date()
+                    next_payment.paid_date = timezone.now().date()
                     next_payment.payroll = payroll
                     next_payment.save()
                     
-                    # Check if loan is fully paid
-                    if loan.payments.filter(is_paid=False).count() == 0:
-                        loan.is_fully_paid = True
+                    # Check if all payments are paid, update loan status if needed
+                    if loan.is_fully_paid:
+                        loan.status = Loan.COMPLETED
+                        loan.actual_end_date = timezone.now().date()
                         loan.save()
             
             # Update payroll totals
