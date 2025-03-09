@@ -22,6 +22,8 @@ A comprehensive payroll management system built with Django that supports employ
 
 ## Installation
 
+### Option 1: Standard Installation
+
 1. Clone the repository:
    ```
    git clone https://github.com/yourusername/payslip.git
@@ -58,6 +60,42 @@ A comprehensive payroll management system built with Django that supports employ
    ```
 
 7. Access the application at http://127.0.0.1:8000/
+
+### Option 2: Docker Installation
+
+1. Clone the repository:
+   ```
+   git clone https://github.com/yourusername/payslip.git
+   cd payslip
+   ```
+
+2. Create a `.env` file from the example:
+   ```
+   cp .env.example .env
+   ```
+   Edit the `.env` file to set your desired configuration.
+
+3. Build and start the Docker containers:
+   ```
+   docker-compose up -d --build
+   ```
+
+4. Create a superuser:
+   ```
+   docker-compose exec web python manage.py create_superuser
+   ```
+
+5. Access the application at http://localhost:8000/
+
+6. To stop the containers:
+   ```
+   docker-compose down
+   ```
+
+7. To view logs:
+   ```
+   docker-compose logs -f
+   ```
 
 ## Initial Setup
 

@@ -3,6 +3,50 @@
 
 {% block title %}{{ title }}{% endblock %}
 
+{% block extra_css %}
+<style>
+    .loan-summary {
+        background-color: #f8f9fa;
+        border-left: 4px solid #0d6efd;
+        padding: 15px;
+        border-radius: 4px;
+    }
+    .loan-summary h4 {
+        color: #0d6efd;
+        margin-bottom: 15px;
+    }
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+    .summary-item.total {
+        font-weight: bold;
+        border-top: 1px solid #dee2e6;
+        padding-top: 8px;
+        margin-top: 8px;
+    }
+    .form-label {
+        font-weight: 500;
+    }
+    .required-field::after {
+        content: "*";
+        color: #dc3545;
+        margin-left: 4px;
+    }
+    .loan-calculator {
+        background-color: #f0f7ff;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .loan-calculator h4 {
+        color: #0d6efd;
+        margin-bottom: 15px;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
     <div class="row mb-4">
@@ -24,10 +68,16 @@
     </div>
 
     <div class="row">
-        <div class="col-md-8 mx-auto">
-            <div class="card">
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-pencil-square text-primary me-2"></i>
+                        {% if object %}Edit Loan Details{% else %}Loan Application Form{% endif %}
+                    </h5>
+                </div>
                 <div class="card-body">
-                    <form method="post" enctype="multipart/form-data">
+                    <form method="post" enctype="multipart/form-data" id="loanForm">
                         {% csrf_token %}
                         
                         {% if form.non_field_errors %}
@@ -36,94 +86,101 @@
                         </div>
                         {% endif %}
                         
-                        <div class="row mb-3">
+                        <h5 class="mb-3 border-bottom pb-2">Applicant Information</h5>
+                        <div class="row mb-4">
                             <div class="col-md-6">
                                 <div class="form-group mb-3">
-                                    <label for="{{ form.employee.id_for_label }}">Employee*</label>
+                                    <label for="{{ form.employee.id_for_label }}" class="form-label required-field">Employee</label>
                                     {{ form.employee }}
                                     {% if form.employee.errors %}
                                     <div class="text-danger">{{ form.employee.errors }}</div>
                                     {% endif %}
-                                    <small class="form-text text-muted">{{ form.employee.help_text }}</small>
+                                    <small class="form-text text-muted">Select the employee applying for the loan</small>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group mb-3">
-                                    <label for="{{ form.loan_type.id_for_label }}">Loan Type*</label>
+                                    <label for="{{ form.loan_type.id_for_label }}" class="form-label required-field">Loan Type</label>
                                     {{ form.loan_type }}
                                     {% if form.loan_type.errors %}
                                     <div class="text-danger">{{ form.loan_type.errors }}</div>
                                     {% endif %}
-                                    <small class="form-text text-muted">{{ form.loan_type.help_text }}</small>
+                                    <small class="form-text text-muted">Select the type of loan you're applying for</small>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <div class="form-group mb-3">
-                                    <label for="{{ form.amount.id_for_label }}">Amount*</label>
-                                    {{ form.amount }}
-                                    {% if form.amount.errors %}
-                                    <div class="text-danger">{{ form.amount.errors }}</div>
-                                    {% endif %}
-                                    <small class="form-text text-muted">{{ form.amount.help_text }}</small>
+                        <h5 class="mb-3 border-bottom pb-2">Loan Details</h5>
+                        <div class="loan-calculator mb-4">
+                            <h4><i class="bi bi-calculator me-2"></i>Loan Calculator</h4>
+                            <p class="text-muted">Adjust the values below to calculate your loan repayment details.</p>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="{{ form.amount.id_for_label }}" class="form-label required-field">Loan Amount</label>
+                                        {{ form.amount }}
+                                        {% if form.amount.errors %}
+                                        <div class="text-danger">{{ form.amount.errors }}</div>
+                                        {% endif %}
+                                        <small class="form-text text-muted">The total amount you wish to borrow</small>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group mb-3">
-                                    <label for="{{ form.interest_rate.id_for_label }}">Interest Rate (%)*</label>
-                                    {{ form.interest_rate }}
-                                    {% if form.interest_rate.errors %}
-                                    <div class="text-danger">{{ form.interest_rate.errors }}</div>
-                                    {% endif %}
-                                    <small class="form-text text-muted">{{ form.interest_rate.help_text }}</small>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="{{ form.interest_rate.id_for_label }}" class="form-label required-field">Interest Rate (%)</label>
+                                        {{ form.interest_rate }}
+                                        {% if form.interest_rate.errors %}
+                                        <div class="text-danger">{{ form.interest_rate.errors }}</div>
+                                        {% endif %}
+                                        <small class="form-text text-muted">Annual interest rate percentage</small>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group mb-3">
-                                    <label for="{{ form.term_months.id_for_label }}">Term (months)*</label>
-                                    {{ form.term_months }}
-                                    {% if form.term_months.errors %}
-                                    <div class="text-danger">{{ form.term_months.errors }}</div>
-                                    {% endif %}
-                                    <small class="form-text text-muted">{{ form.term_months.help_text }}</small>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="{{ form.term_months.id_for_label }}" class="form-label required-field">Term (months)</label>
+                                        {{ form.term_months }}
+                                        {% if form.term_months.errors %}
+                                        <div class="text-danger">{{ form.term_months.errors }}</div>
+                                        {% endif %}
+                                        <small class="form-text text-muted">Number of months to repay the loan</small>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         
                         {% if form.status and not form.status.is_hidden %}
                         <div class="form-group mb-3">
-                            <label for="{{ form.status.id_for_label }}">Status</label>
+                            <label for="{{ form.status.id_for_label }}" class="form-label">Status</label>
                             {{ form.status }}
                             {% if form.status.errors %}
                             <div class="text-danger">{{ form.status.errors }}</div>
                             {% endif %}
-                            <small class="form-text text-muted">{{ form.status.help_text }}</small>
+                            <small class="form-text text-muted">Current status of the loan application</small>
                         </div>
                         {% endif %}
                         
+                        <h5 class="mb-3 border-bottom pb-2">Purpose & Documentation</h5>
                         <div class="form-group mb-3">
-                            <label for="{{ form.description.id_for_label }}">Description</label>
-                            {{ form.description }}
-                            {% if form.description.errors %}
-                            <div class="text-danger">{{ form.description.errors }}</div>
+                            <label for="{{ form.purpose.id_for_label }}" class="form-label required-field">Loan Purpose</label>
+                            {{ form.purpose }}
+                            {% if form.purpose.errors %}
+                            <div class="text-danger">{{ form.purpose.errors }}</div>
                             {% endif %}
-                            <small class="form-text text-muted">{{ form.description.help_text }}</small>
+                            <small class="form-text text-muted">Explain why you need this loan and how you plan to use it</small>
                         </div>
                         
                         <div class="form-group mb-3">
-                            <label for="{{ form.documents.id_for_label }}">Supporting Documents</label>
-                            {{ form.documents }}
-                            {% if form.documents.errors %}
-                            <div class="text-danger">{{ form.documents.errors }}</div>
+                            <label for="{{ form.notes.id_for_label }}" class="form-label">Additional Notes</label>
+                            {{ form.notes }}
+                            {% if form.notes.errors %}
+                            <div class="text-danger">{{ form.notes.errors }}</div>
                             {% endif %}
-                            <small class="form-text text-muted">{{ form.documents.help_text }}</small>
+                            <small class="form-text text-muted">Any additional information that might support your application</small>
                         </div>
                         
                         <div class="mt-4 text-end">
                             <button type="submit" class="btn btn-primary">
-                                {{ button_label|default:"Save" }}
+                                <i class="bi bi-check-circle me-1"></i> {{ button_label|default:"Submit Application" }}
                             </button>
                             {% if object %}
                             <a href="{% url 'loan_detail' object.id %}" class="btn btn-outline-secondary">Cancel</a>
@@ -132,6 +189,68 @@
                             {% endif %}
                         </div>
                     </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-info-circle text-primary me-2"></i>
+                        Loan Summary
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="loan-summary">
+                        <h4>Repayment Details</h4>
+                        <div class="summary-item">
+                            <span>Principal Amount:</span>
+                            <span id="summary-principal">$0.00</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Interest Rate:</span>
+                            <span id="summary-rate">0.00%</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Loan Term:</span>
+                            <span id="summary-term">0 months</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Monthly Payment:</span>
+                            <span id="summary-monthly">$0.00</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Total Interest:</span>
+                            <span id="summary-interest">$0.00</span>
+                        </div>
+                        <div class="summary-item total">
+                            <span>Total Repayment:</span>
+                            <span id="summary-total">$0.00</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h5 class="mb-3">Important Information</h5>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item px-0">
+                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                Repayments will be automatically deducted from your monthly payroll
+                            </li>
+                            <li class="list-group-item px-0">
+                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                You can view your loan status and repayment schedule at any time
+                            </li>
+                            <li class="list-group-item px-0">
+                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                Early repayment is allowed without any penalties
+                            </li>
+                            <li class="list-group-item px-0">
+                                <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+                                Applications are subject to approval by management
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -151,17 +270,64 @@
             }
         });
         
-        // Handle file input display
-        const fileInput = document.querySelector('input[type=file]');
-        if (fileInput) {
-            fileInput.classList.add('form-control-file');
-        }
-        
         // Style select elements
         const selects = document.querySelectorAll('select');
         selects.forEach(select => {
             select.classList.add('form-select');
         });
+        
+        // Set up loan calculator
+        const amountInput = document.getElementById('{{ form.amount.id_for_label }}');
+        const rateInput = document.getElementById('{{ form.interest_rate.id_for_label }}');
+        const termInput = document.getElementById('{{ form.term_months.id_for_label }}');
+        
+        // Summary elements
+        const summaryPrincipal = document.getElementById('summary-principal');
+        const summaryRate = document.getElementById('summary-rate');
+        const summaryTerm = document.getElementById('summary-term');
+        const summaryMonthly = document.getElementById('summary-monthly');
+        const summaryInterest = document.getElementById('summary-interest');
+        const summaryTotal = document.getElementById('summary-total');
+        
+        // Function to calculate loan details
+        function calculateLoan() {
+            const principal = parseFloat(amountInput.value) || 0;
+            const rate = parseFloat(rateInput.value) || 0;
+            const term = parseInt(termInput.value) || 0;
+            
+            // Update summary display
+            summaryPrincipal.textContent = '$' + principal.toFixed(2);
+            summaryRate.textContent = rate.toFixed(2) + '%';
+            summaryTerm.textContent = term + ' months';
+            
+            // Calculate monthly payment (simple interest for simplicity)
+            const totalInterest = principal * (rate / 100);
+            const totalRepayment = principal + totalInterest;
+            const monthlyPayment = term > 0 ? totalRepayment / term : 0;
+            
+            summaryMonthly.textContent = '$' + monthlyPayment.toFixed(2);
+            summaryInterest.textContent = '$' + totalInterest.toFixed(2);
+            summaryTotal.textContent = '$' + totalRepayment.toFixed(2);
+        }
+        
+        // Add event listeners to inputs
+        if (amountInput) amountInput.addEventListener('input', calculateLoan);
+        if (rateInput) rateInput.addEventListener('input', calculateLoan);
+        if (termInput) termInput.addEventListener('input', calculateLoan);
+        
+        // Initialize with current values
+        calculateLoan();
+        
+        // Handle loan type selection to update interest rate
+        const loanTypeSelect = document.getElementById('{{ form.loan_type.id_for_label }}');
+        if (loanTypeSelect) {
+            loanTypeSelect.addEventListener('change', function() {
+                // In a real application, you would fetch the interest rate for the selected loan type
+                // This is a simplified example
+                // You could use AJAX to get the loan type details from the server
+                console.log('Loan type changed, would update interest rate here');
+            });
+        }
     });
 </script>
 {% endblock %} 

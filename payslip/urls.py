@@ -9,7 +9,7 @@ urlpatterns = [
     path('employees/', include('employees.urls')),
     path('payroll/', include('payroll.urls')),
     path('loans/', include('lending.urls')),
-    path('accounts/', include('django.contrib.auth.urls')),
+    path('accounts/', include('allauth.urls')),
 ]
 
 # Serve media files in development

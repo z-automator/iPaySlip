@@ -30,7 +30,12 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_bootstrap5',
     'django_bootstrap5',
-    'weasyprint',
+    # 'weasyprint',  # Removed due to Windows compatibility issues
+    
+    # Django-allauth
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
     
     # Project apps
     'core',
@@ -47,6 +52,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',  # Added for django-allauth
 ]
 
 ROOT_URLCONF = 'payslip.urls'
@@ -150,10 +156,10 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 # Email settings (for development)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# Weasyprint for PDF generation
-WEASYPRINT_SETTINGS = {
-    'paths_to_check': ['/usr/local/bin/weasyprint'],
-}
+# PDF generation settings (using ReportLab/xhtml2pdf instead of WeasyPrint)
+# WEASYPRINT_SETTINGS = {
+#     'paths_to_check': ['/usr/local/bin/weasyprint'],
+# }
 
 # Application constants
 COMPANY_NAME = "Acme Corporation"
@@ -165,4 +171,18 @@ COMPANY_LOGO = "images/logo.png"  # Relative to STATIC_URL
 
 # Transaction settings
 DECIMAL_PLACES = 2
-MAX_DIGITS = 12 
+MAX_DIGITS = 12
+
+# Django-allauth settings
+AUTHENTICATION_BACKENDS = [
+    # Needed to login by username in Django admin, regardless of `allauth`
+    'django.contrib.auth.backends.ModelBackend',
+    # `allauth` specific authentication methods, such as login by e-mail
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_VERIFICATION = 'optional'  # Set to 'mandatory' in production 

@@ -7,6 +7,10 @@ from .views import (
     LoanDeleteView,
     approve_loan,
     reject_loan,
+    LoanTypeListView,
+    LoanTypeCreateView,
+    LoanTypeUpdateView,
+    LoanTypeDeleteView,
 )
 
 urlpatterns = [
@@ -17,4 +21,10 @@ urlpatterns = [
     path('<int:pk>/delete/', LoanDeleteView.as_view(), name='loan_delete'),
     path('<int:pk>/approve/', approve_loan, name='approve_loan'),
     path('<int:pk>/reject/', reject_loan, name='reject_loan'),
+    
+    # Loan Type URLs
+    path('types/', LoanTypeListView.as_view(), name='loan_type_list'),
+    path('types/create/', LoanTypeCreateView.as_view(), name='loan_type_create'),
+    path('types/<int:pk>/edit/', LoanTypeUpdateView.as_view(), name='loan_type_update'),
+    path('types/<int:pk>/delete/', LoanTypeDeleteView.as_view(), name='loan_type_delete'),
 ] 
