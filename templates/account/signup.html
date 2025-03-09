@@ -1,0 +1,126 @@
+{% extends "landing_base.html" %}
+{% load i18n %}
+{% load django_bootstrap5 %}
+{% load static %}
+
+{% block title %}{% trans "Sign Up" %} | iPaySlip{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <a href="{% url 'home' %}" class="auth-logo text-decoration-none text-white">
+                <i class="bi bi-cash-coin"></i> iPaySlip
+            </a>
+            <h1 class="h4 mb-0">{% trans "Sign Up" %}</h1>
+            <p class="mb-0">Create your account and start managing payroll efficiently.</p>
+        </div>
+        
+        <div class="auth-body">
+            <form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
+                {% csrf_token %}
+                
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    <p class="mb-0"><strong>{% trans "Error:" %}</strong> {% trans "Please correct the errors below." %}</p>
+                </div>
+                {% endif %}
+                
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.non_field_errors %}
+                    <p class="mb-0">{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="id_first_name" class="form-label">{% trans "First Name" %}</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                            <input type="text" name="first_name" placeholder="{% trans 'First name' %}" id="id_first_name" class="form-control">
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="id_last_name" class="form-label">{% trans "Last Name" %}</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                            <input type="text" name="last_name" placeholder="{% trans 'Last name' %}" id="id_last_name" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="id_email" class="form-label">{% trans "Email" %}</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                        <input type="email" name="email" placeholder="{% trans 'Email address' %}" autocomplete="email" required id="id_email" class="form-control {% if form.email.errors %}is-invalid{% endif %}">
+                        {% if form.email.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.email.errors %}{{ error }}{% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <small class="form-text text-muted">{% trans "We'll never share your email with anyone else." %}</small>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="id_password1" class="form-label">{% trans "Password" %}</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                        <input type="password" name="password1" placeholder="{% trans 'Password' %}" autocomplete="new-password" required id="id_password1" class="form-control {% if form.password1.errors %}is-invalid{% endif %}">
+                        {% if form.password1.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.password1.errors %}{{ error }}{% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <small class="form-text text-muted">{% trans "At least 8 characters. Can't be too similar to your other personal information. Can't be a commonly used password. Can't be entirely numeric." %}</small>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="id_password2" class="form-label">{% trans "Confirm Password" %}</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                        <input type="password" name="password2" placeholder="{% trans 'Confirm password' %}" autocomplete="new-password" required id="id_password2" class="form-control {% if form.password2.errors %}is-invalid{% endif %}">
+                        {% if form.password2.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.password2.errors %}{{ error }}{% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="mb-4 form-check">
+                    <input type="checkbox" id="terms" class="form-check-input" required>
+                    <label for="terms" class="form-check-label">{% trans "I agree to the" %} <a href="#" class="text-decoration-none">{% trans "Terms of Service" %}</a> {% trans "and" %} <a href="#" class="text-decoration-none">{% trans "Privacy Policy" %}</a></label>
+                </div>
+                
+                {% if redirect_field_value %}
+                <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                {% endif %}
+                
+                <button class="btn btn-auth w-100" type="submit">{% trans "Sign Up" %}</button>
+                
+                <div class="auth-divider">
+                    <span>{% trans "OR" %}</span>
+                </div>
+                
+                <div class="text-center">
+                    <p class="mb-0">{% trans "Already have an account?" %} <a href="{% url 'account_login' %}" class="text-decoration-none fw-bold">{% trans "Sign In" %}</a></p>
+                </div>
+            </form>
+        </div>
+        
+        <div class="auth-footer">
+            <p class="mb-0 small">&copy; {% now "Y" %} iPaySlip. {% trans "All rights reserved." %}</p>
+        </div>
+    </div>
+</div>
+{% endblock %} 

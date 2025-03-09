@@ -1,0 +1,62 @@
+{% extends "landing_base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Sign Out" %} | iPaySlip{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+<style>
+    .logout-message {
+        text-align: center;
+        margin: 2rem 0;
+    }
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <a href="{% url 'home' %}" class="auth-logo text-decoration-none text-white">
+                <i class="bi bi-cash-coin"></i> iPaySlip
+            </a>
+            <h1 class="h4 mb-0">{% trans "Signing Out" %}</h1>
+            <p class="mb-0">{% trans "Please wait while we log you out..." %}</p>
+        </div>
+        
+        <div class="auth-body">
+            <div class="logout-message">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">{% trans "Loading..." %}</span>
+                </div>
+                <p class="mb-0">{% trans "You are being signed out. You will be redirected shortly." %}</p>
+            </div>
+            
+            <form id="logout_form" method="post" action="{% url 'account_logout' %}">
+                {% csrf_token %}
+                {% if redirect_field_value %}
+                <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
+                {% endif %}
+            </form>
+        </div>
+        
+        <div class="auth-footer">
+            <p class="mb-0 small">&copy; {% now "Y" %} iPaySlip. {% trans "All rights reserved." %}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Automatically submit the logout form when the page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('logout_form').submit();
+    });
+</script>
+{% endblock %} 

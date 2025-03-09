@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'landing_base.html' %}
 {% load static %}
 
 {% block title %}iPaySlip - Effortless Payroll Processing & Payslip Generation{% endblock %}
@@ -23,7 +23,7 @@
                 {% if not user.is_authenticated %}
                 <a href="{% url 'account_login' %}" class="btn btn-sm btn-light rounded-pill px-3">Sign in</a>
                 {% else %}
-                <a href="{% url 'employee_list' %}" class="btn btn-sm btn-light rounded-pill px-3">Dashboard</a>
+                <a href="{% url 'dashboard' %}" class="btn btn-sm btn-light rounded-pill px-3">Dashboard</a>
                 {% endif %}
             </div>
         </div>
@@ -36,10 +36,17 @@
                     iPaySlip is a powerful payroll management system built with Django, designed to handle employee payroll, tax calculations, loan deductions, and payslip generation—all in one place.
                 </p>
                 <div class="d-flex flex-wrap">
+                    {% if not user.is_authenticated %}
                     <a href="{% url 'account_signup' %}" class="btn btn-landing-primary">Get Started for Free</a>
                     <a href="#demo" class="btn btn-landing-secondary">
                         <i class="bi bi-play-circle me-2"></i>Watch Demo (2 min)
                     </a>
+                    {% else %}
+                    <a href="{% url 'dashboard' %}" class="btn btn-landing-primary">Go to Dashboard</a>
+                    <a href="{% url 'process_payroll' %}" class="btn btn-landing-secondary">
+                        <i class="bi bi-calculator me-2"></i>Process Payroll
+                    </a>
+                    {% endif %}
                 </div>
             </div>
             <div class="col-lg-6 d-none d-lg-block text-center">
@@ -422,19 +429,9 @@
 
 {% block extra_js %}
 <script>
-    // Remove the container class from the main element to allow full-width landing page
+    // Any landing page specific JavaScript can go here
     document.addEventListener('DOMContentLoaded', function() {
-        const mainElement = document.querySelector('main');
-        if (mainElement) {
-            mainElement.classList.remove('container');
-            mainElement.classList.remove('my-4');
-        }
-        
-        // Remove the default footer for the landing page
-        const defaultFooter = document.querySelector('footer:not(.landing-footer)');
-        if (defaultFooter) {
-            defaultFooter.style.display = 'none';
-        }
+        // Initialize any landing page specific functionality
     });
 </script>
 {% endblock %} 
