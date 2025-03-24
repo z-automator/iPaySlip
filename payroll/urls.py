@@ -22,6 +22,7 @@ from .views import (
     TaxTierCreateView,
     TaxTierUpdateView,
     TaxTierDeleteView,
+    bulk_update_payroll_status,
 )
 
 urlpatterns = [
@@ -32,6 +33,7 @@ urlpatterns = [
     path('<int:pk>/delete/', PayrollDeleteView.as_view(), name='payroll_delete'),
     path('<int:pk>/pdf/', generate_payslip_pdf_view, name='generate_payslip_pdf'),
     path('process/', PayrollProcessView.as_view(), name='process_payroll'),
+    path('bulk-update-status/', bulk_update_payroll_status, name='bulk_update_payroll_status'),
     path('<int:pk>/entry/add/', add_payroll_entry, name='add_payroll_entry'),
     path('entry/<int:pk>/delete/', delete_payroll_entry, name='delete_payroll_entry'),
     path('periods/', PayrollPeriodListView.as_view(), name='period_list'),

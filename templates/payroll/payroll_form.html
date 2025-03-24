@@ -394,8 +394,10 @@
     </div>
 </div>
 {% endif %}
+{% endblock %}
 
 {% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function() {
         // Handle template checkbox toggle
@@ -405,6 +407,24 @@
             } else {
                 $('#template_entries_preview').hide();
             }
+        });
+        
+        // Auto-calculate net salary based on gross salary and deductions
+        function calculateNetSalary() {
+            var grossSalary = parseFloat($('#id_gross_salary').val()) || 0;
+            var totalDeductions = parseFloat($('#id_total_deductions').val()) || 0;
+            var netSalary = grossSalary - totalDeductions;
+            
+            // Set the net salary field (ensure it's not negative)
+            $('#id_net_salary').val(Math.max(0, netSalary).toFixed(2));
+        }
+        
+        // Calculate net salary when the page loads
+        calculateNetSalary();
+        
+        // Recalculate when gross salary or total deductions change
+        $('#id_gross_salary, #id_total_deductions').on('input change', function() {
+            calculateNetSalary();
         });
         
         // Handle employee selection change
@@ -491,7 +511,12 @@
             var modal = new bootstrap.Modal(document.getElementById('addEntryModal'));
             modal.show();
         });
+
+        // Initialize calculation on page load
+        calculateNetSalary();
+        
+        // Debug
+        console.log('Payroll form script loaded');
     });
 </script>
-{% endblock %}
 {% endblock %} 

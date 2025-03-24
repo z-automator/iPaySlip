@@ -4,6 +4,43 @@ from django.utils import timezone
 from employees.models import Employee
 from django.core.exceptions import ValidationError
 from django.conf import settings
+from decimal import Decimal
+
+class Currency(models.Model):
+    """Model for managing different currencies and their exchange rates to EGP"""
+    code = models.CharField(max_length=3, unique=True, help_text="Currency code (e.g., USD, EUR)")
+    name = models.CharField(max_length=50, help_text="Currency name (e.g., US Dollar)")
+    symbol = models.CharField(max_length=5, help_text="Currency symbol (e.g., $)")
+    exchange_rate_to_egp = models.DecimalField(
+        max_digits=10, 
+        decimal_places=4,
+        help_text="Exchange rate to convert to EGP (e.g., 1 USD = 30.90 EGP)"
+    )
+    is_base_currency = models.BooleanField(default=False, help_text="Whether this is the base currency (EGP)")
+    last_updated = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name_plural = "Currencies"
+        ordering = ['code']
+    
+    def __str__(self):
+        return f"{self.code} - {self.name}"
+    
+    def save(self, *args, **kwargs):
+        # Ensure only one base currency exists
+        if self.is_base_currency:
+            Currency.objects.filter(is_base_currency=True).exclude(pk=self.pk).update(is_base_currency=False)
+            # Base currency (EGP) should always have exchange rate 1
+            self.exchange_rate_to_egp = Decimal('1.0')
+        super().save(*args, **kwargs)
+    
+    def convert_to_egp(self, amount):
+        """Convert an amount from this currency to EGP"""
+        return amount * self.exchange_rate_to_egp
+    
+    def convert_from_egp(self, amount):
+        """Convert an amount from EGP to this currency"""
+        return amount / self.exchange_rate_to_egp
 
 class PayrollPeriod(models.Model):
     """Model for defining payroll periods"""
@@ -72,10 +109,27 @@ class Payroll(models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='payrolls')
     period = models.ForeignKey(PayrollPeriod, on_delete=models.CASCADE, related_name='payrolls')
     
-    # Financial information
+    # Financial information in original currency
+    currency = models.ForeignKey(
+        Currency, 
+        on_delete=models.PROTECT,
+        default=1,  # This will be the ID of our base currency (EGP)
+        help_text="Currency for this payroll's amounts"
+    )
+    exchange_rate = models.DecimalField(
+        max_digits=10, 
+        decimal_places=4,
+        default=1.0000,
+        help_text="Exchange rate to EGP at the time of payroll creation"
+    )
     gross_salary = models.DecimalField(max_digits=12, decimal_places=2)
     total_deductions = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     net_salary = models.DecimalField(max_digits=12, decimal_places=2)
+    
+    # Financial information in EGP (for reporting consistency)
+    gross_salary_egp = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_deductions_egp = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    net_salary_egp = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     
     # Status and dates
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=PENDING)
@@ -96,8 +150,32 @@ class Payroll(models.Model):
         return reverse('payroll_detail', kwargs={'pk': self.pk})
     
     def save(self, *args, **kwargs):
-        # Calculate net salary
+        # Set currency and exchange rate from employee if not set
+        if not self.currency_id:
+            self.currency = self.employee.salary_currency
+            self.exchange_rate = self.currency.exchange_rate_to_egp
+        
+        # Ensure values are not None
+        if self.gross_salary is None:
+            self.gross_salary = Decimal('0.00')
+        
+        # Ensure total_deductions is not None
+        if self.total_deductions is None:
+            self.total_deductions = Decimal('0.00')
+        
+        # Calculate net salary in original currency
         self.net_salary = self.gross_salary - self.total_deductions
+        
+        # Set exchange rate to Decimal if it's a float
+        if isinstance(self.exchange_rate, float):
+            exchange_rate_decimal = Decimal(str(self.exchange_rate))
+        else:
+            exchange_rate_decimal = self.exchange_rate or Decimal('1.00')
+        
+        # Calculate amounts in EGP
+        self.gross_salary_egp = self.gross_salary * exchange_rate_decimal
+        self.total_deductions_egp = self.total_deductions * exchange_rate_decimal
+        self.net_salary_egp = self.net_salary * exchange_rate_decimal
         
         # Set processed date if completed
         if self.status == self.COMPLETED and not self.processed_date:
@@ -111,11 +189,26 @@ class PayrollEntry(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     amount = models.DecimalField(max_digits=12, decimal_places=2)
+    amount_egp = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     is_deduction = models.BooleanField(default=False)
     
     def __str__(self):
         entry_type = "Deduction" if self.is_deduction else "Earning"
-        return f"{self.name} ({entry_type}): {self.amount}"
+        return f"{self.name} ({entry_type}): {self.amount} {self.payroll.currency.code}"
+    
+    def save(self, *args, **kwargs):
+        # Calculate amount in EGP
+        if self.payroll.exchange_rate is not None:
+            # Always convert exchange_rate to Decimal for calculation
+            if isinstance(self.payroll.exchange_rate, float):
+                exchange_rate_decimal = Decimal(str(self.payroll.exchange_rate))
+                self.amount_egp = self.amount * exchange_rate_decimal
+            else:
+                self.amount_egp = self.amount * self.payroll.exchange_rate
+        else:
+            # Default to same amount if no exchange rate
+            self.amount_egp = self.amount
+        super().save(*args, **kwargs)
     
     class Meta:
         ordering = ['-is_deduction', 'name']

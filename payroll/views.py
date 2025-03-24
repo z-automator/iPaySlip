@@ -310,12 +310,24 @@ def delete_payroll_entry(request, pk):
 
 def update_payroll_totals(payroll):
     """Update payroll totals based on entries"""
-    earnings_sum = payroll.entries.filter(is_deduction=False).aggregate(total=Sum('amount'))['total'] or 0
-    deductions_sum = payroll.entries.filter(is_deduction=True).aggregate(total=Sum('amount'))['total'] or 0
+    # Calculate totals in original currency
+    earnings_sum = payroll.entries.filter(is_deduction=False).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+    deductions_sum = payroll.entries.filter(is_deduction=True).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
     
+    # Update original currency amounts
     payroll.gross_salary = earnings_sum
     payroll.total_deductions = deductions_sum
     payroll.net_salary = earnings_sum - deductions_sum
+    
+    # Calculate totals in EGP
+    earnings_sum_egp = payroll.entries.filter(is_deduction=False).aggregate(total=Sum('amount_egp'))['total'] or Decimal('0.00')
+    deductions_sum_egp = payroll.entries.filter(is_deduction=True).aggregate(total=Sum('amount_egp'))['total'] or Decimal('0.00')
+    
+    # Update EGP amounts
+    payroll.gross_salary_egp = earnings_sum_egp
+    payroll.total_deductions_egp = deductions_sum_egp
+    payroll.net_salary_egp = earnings_sum_egp - deductions_sum_egp
+    
     payroll.save()
     
     return payroll
@@ -482,29 +494,45 @@ class PayrollProcessView(LoginRequiredMixin, PermissionRequiredMixin, FormView):
                 messages.warning(self.request, f"Payroll already exists for {employee.full_name} in {period.name}")
                 continue
             
+            # Calculate gross salary based on salary type
+            if employee.salary_type == 'monthly':
+                gross_salary = employee.base_salary
+            else:  # hourly rate
+                # Calculate total hours for the period (assuming standard 8 hours/day, 22 days/month)
+                standard_hours = 8 * 22  # 176 hours per month
+                gross_salary = employee.hourly_rate * standard_hours
+            
             # Create new payroll
             payroll = Payroll.objects.create(
                 employee=employee,
                 period=period,
-                gross_salary=employee.base_salary,
+                gross_salary=gross_salary,
                 status=Payroll.PENDING
             )
             
             # Check if employee has a payroll template
+            has_template = False
             try:
-                template = employee.payroll_template
-                # Use template entries
-                for entry in template.get_entries():
-                    PayrollEntry.objects.create(
-                        payroll=payroll,
-                        name=entry.name,
-                        description=entry.description,
-                        amount=entry.amount,
-                        is_deduction=entry.is_deduction
-                    )
-                # Add loan repayments that might not be in the template
-                self._add_loan_repayments(payroll, employee)
-            except:
+                if hasattr(employee, 'payroll_template'):
+                    template = employee.payroll_template
+                    has_template = True
+                    # Use template entries
+                    for entry in template.get_entries():
+                        PayrollEntry.objects.create(
+                            payroll=payroll,
+                            name=entry.name,
+                            description=entry.description,
+                            amount=entry.amount,
+                            is_deduction=entry.is_deduction
+                        )
+                    # Add loan repayments that might not be in the template
+                    self._add_loan_repayments(payroll, employee)
+            except Exception as e:
+                # Log the error
+                print(f"Error processing template for employee {employee.id}: {str(e)}")
+                has_template = False
+                
+            if not has_template:
                 # No template, use standard process
                 self._process_standard_payroll(payroll, employee)
             
@@ -516,22 +544,39 @@ class PayrollProcessView(LoginRequiredMixin, PermissionRequiredMixin, FormView):
     
     def _process_standard_payroll(self, payroll, employee):
         """Process payroll using standard method without template"""
-        # Add standard earnings (base salary)
-        PayrollEntry.objects.create(
-            payroll=payroll,
-            name="Base Salary",
-            description="Monthly base salary",
-            amount=employee.base_salary,
-            is_deduction=False
-        )
+        # Add standard earnings based on salary type
+        if employee.salary_type == 'monthly':
+            PayrollEntry.objects.create(
+                payroll=payroll,
+                name="Base Salary",
+                description=f"Monthly base salary ({employee.salary_currency.code})",
+                amount=employee.base_salary,
+                is_deduction=False
+            )
+            taxable_amount = employee.base_salary_egp  # Use EGP amount for tax calculation
+        else:  # hourly rate
+            # Calculate total hours for the period (assuming standard 8 hours/day, 22 days/month)
+            standard_hours = 8 * 22  # 176 hours per month
+            total_amount = employee.hourly_rate * standard_hours
+            
+            PayrollEntry.objects.create(
+                payroll=payroll,
+                name="Hourly Wages",
+                description=f"Standard hours ({standard_hours} hrs) @ {employee.hourly_rate} {employee.salary_currency.code}/hr",
+                amount=total_amount,
+                is_deduction=False
+            )
+            taxable_amount = employee.hourly_rate_egp * standard_hours  # Use EGP amount for tax calculation
         
-        # Calculate and add income tax
-        tax_amount = calculate_income_tax(employee.base_salary)
-        if tax_amount > Decimal('0.00'):
+        # Calculate and add income tax (always in EGP)
+        tax_amount_egp = calculate_income_tax(taxable_amount)
+        if tax_amount_egp > Decimal('0.00'):
+            # Convert tax amount back to employee's currency
+            tax_amount = tax_amount_egp / employee.salary_currency.exchange_rate_to_egp
             PayrollEntry.objects.create(
                 payroll=payroll,
                 name="Income Tax",
-                description="Calculated based on tax brackets",
+                description=f"Calculated based on tax brackets (converted from {tax_amount_egp} EGP)",
                 amount=tax_amount,
                 is_deduction=True
             )
@@ -633,3 +678,61 @@ class TaxTierDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView)
     def delete(self, request, *args, **kwargs):
         messages.success(request, 'Tax tier deleted successfully.')
         return super().delete(request, *args, **kwargs)
+
+@login_required
+@permission_required('payroll.change_payroll')
+def bulk_update_payroll_status(request):
+    """Update the status of multiple payrolls at once"""
+    if request.method == 'POST':
+        selected_payrolls = request.POST.getlist('selected_payrolls')
+        new_status = request.POST.get('new_status')
+        
+        if not selected_payrolls:
+            messages.warning(request, "No payrolls were selected.")
+            return redirect('payroll_list')
+            
+        if not new_status:
+            messages.warning(request, "No status was selected.")
+            return redirect('payroll_list')
+        
+        # Validate status value
+        valid_statuses = [status[0] for status in Payroll.STATUS_CHOICES]
+        if new_status not in valid_statuses:
+            messages.error(request, "Invalid status selected.")
+            return redirect('payroll_list')
+        
+        try:
+            with transaction.atomic():
+                # Get the payrolls to update
+                payrolls = Payroll.objects.filter(id__in=selected_payrolls)
+                count = payrolls.count()
+                
+                # Check if any completed payrolls are being changed to a different status
+                completed_being_changed = payrolls.filter(status=Payroll.COMPLETED).exclude(status=new_status).exists()
+                if completed_being_changed:
+                    messages.warning(
+                        request, 
+                        "Warning: You are changing the status of completed payrolls. "
+                        "This may affect financial records and reports."
+                    )
+                
+                # Update the status
+                payrolls.update(status=new_status)
+                
+                # If status is completed, set the processed_date
+                if new_status == Payroll.COMPLETED:
+                    # We need to iterate to set processed_date and call save()
+                    for payroll in payrolls:
+                        if not payroll.processed_date:
+                            payroll.processed_date = timezone.now()
+                            payroll.save()
+                            
+                            # Update employee template if moving to completed
+                            template = EmployeePayrollTemplate.get_or_create_for_employee(payroll.employee)
+                            template.update_from_payroll(payroll)
+                
+                messages.success(request, f"Updated status to '{new_status}' for {count} payrolls.")
+        except Exception as e:
+            messages.error(request, f"Error updating payroll statuses: {str(e)}")
+    
+    return redirect('payroll_list')

@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from .models import Employee, Department
+from payroll.models import Currency
 
 class DepartmentForm(forms.ModelForm):
     class Meta:
@@ -36,12 +37,16 @@ class EmployeeForm(forms.ModelForm):
             'hire_date': forms.DateInput(attrs={'type': 'date'}),
             'end_date': forms.DateInput(attrs={'type': 'date', 'required': False}),
             'address': forms.Textarea(attrs={'rows': 3}),
+            'salary_type': forms.Select(attrs={'class': 'form-select', 'onchange': 'toggleSalaryFields(this.value)'}),
+            'salary_currency': forms.Select(attrs={'class': 'form-select'}),
+            'base_salary': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'hourly_rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
         }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Make some fields optional
-        optional_fields = ['end_date', 'profile_image', 'phone_number']
+        optional_fields = ['end_date', 'profile_image', 'phone_number', 'base_salary', 'hourly_rate']
         for field in optional_fields:
             if field in self.fields:
                 self.fields[field].required = False
@@ -49,11 +54,43 @@ class EmployeeForm(forms.ModelForm):
         # Add helper text
         self.fields['bank_account'].help_text = "Bank account number for salary transfers"
         self.fields['position'].help_text = "Employee job position/title"
-        self.fields['base_salary'].help_text = "Monthly base salary amount before deductions"
+        self.fields['base_salary'].help_text = "Monthly base salary amount (for monthly salary type)"
+        self.fields['hourly_rate'].help_text = "Hourly rate amount (for hourly rate type)"
+        self.fields['salary_type'].help_text = "Choose between monthly salary or hourly rate"
+        self.fields['salary_currency'].help_text = "Select the currency for salary/hourly rate"
+        
+        # Set up currency field
+        self.fields['salary_currency'].queryset = Currency.objects.all().order_by('code')
+        self.fields['salary_currency'].label_from_instance = lambda obj: f"{obj.code} - {obj.name} ({obj.symbol})"
+        
+        # If no currency is selected and we have EGP, set it as default
+        if not self.initial.get('salary_currency'):
+            try:
+                egp_currency = Currency.objects.get(code='EGP')
+                self.initial['salary_currency'] = egp_currency.id
+            except Currency.DoesNotExist:
+                pass
         
         # If this is an existing employee, populate the first_name and last_name fields
         if self.instance and self.instance.pk and self.instance.user:
             self.fields['first_name'].initial = self.instance.user.first_name
             self.fields['last_name'].initial = self.instance.user.last_name
             # Set the initial value of is_active from the instance
-            self.fields['is_active'].initial = self.instance.is_active 
+            self.fields['is_active'].initial = self.instance.is_active
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        salary_type = cleaned_data.get('salary_type')
+        base_salary = cleaned_data.get('base_salary')
+        hourly_rate = cleaned_data.get('hourly_rate')
+        salary_currency = cleaned_data.get('salary_currency')
+        
+        if not salary_currency:
+            self.add_error('salary_currency', 'Please select a currency')
+        
+        if salary_type == 'monthly' and not base_salary:
+            self.add_error('base_salary', 'Base salary is required for monthly salary type')
+        elif salary_type == 'hourly' and not hourly_rate:
+            self.add_error('hourly_rate', 'Hourly rate is required for hourly rate type')
+        
+        return cleaned_data 

@@ -74,8 +74,17 @@
                         <span class="fw-bold">{{ employee.department.name|default:"--" }}</span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between">
+                        {% if employee.salary_type == 'monthly' %}
                         <span class="text-muted">Base Salary</span>
-                        <span class="fw-bold">${{ employee.base_salary|floatformat:2 }}</span>
+                        <span class="fw-bold">{{ employee.base_salary|floatformat:2 }} {{ employee.salary_currency.code }}</span>
+                        {% else %}
+                        <span class="text-muted">Hourly Rate</span>
+                        <span class="fw-bold">{{ employee.hourly_rate|floatformat:2 }} {{ employee.salary_currency.code }}/hr</span>
+                        {% endif %}
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">Salary Type</span>
+                        <span class="fw-bold">{{ employee.get_salary_type_display }}</span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between">
                         <span class="text-muted">Hire Date</span>

@@ -194,11 +194,56 @@
                                 <h5 class="border-bottom pb-2">Salary & Banking</h5>
                                 <div class="row g-3">
                                     <div class="col-md-4">
-                                        <label for="{{ form.base_salary.id_for_label }}" class="form-label">Base Salary*</label>
+                                        <label for="{{ form.salary_type.id_for_label }}" class="form-label">Salary Type*</label>
+                                        {{ form.salary_type }}
+                                        {% if form.salary_type.help_text %}
+                                        <div class="form-text">{{ form.salary_type.help_text }}</div>
+                                        {% endif %}
+                                        {% if form.salary_type.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.salary_type.errors %}
+                                            {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="{{ form.salary_currency.id_for_label }}" class="form-label">Currency*</label>
+                                        {{ form.salary_currency }}
+                                        {% if form.salary_currency.help_text %}
+                                        <div class="form-text">{{ form.salary_currency.help_text }}</div>
+                                        {% endif %}
+                                        {% if form.salary_currency.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.salary_currency.errors %}
+                                            {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4" id="monthly-salary-field">
+                                        <label for="{{ form.base_salary.id_for_label }}" class="form-label">Base Salary</label>
                                         {{ form.base_salary }}
+                                        {% if form.base_salary.help_text %}
+                                        <div class="form-text">{{ form.base_salary.help_text }}</div>
+                                        {% endif %}
                                         {% if form.base_salary.errors %}
                                         <div class="invalid-feedback d-block">
                                             {% for error in form.base_salary.errors %}
+                                            {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4" id="hourly-rate-field">
+                                        <label for="{{ form.hourly_rate.id_for_label }}" class="form-label">Hourly Rate</label>
+                                        {{ form.hourly_rate }}
+                                        {% if form.hourly_rate.help_text %}
+                                        <div class="form-text">{{ form.hourly_rate.help_text }}</div>
+                                        {% endif %}
+                                        {% if form.hourly_rate.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.hourly_rate.errors %}
                                             {{ error }}
                                             {% endfor %}
                                         </div>
@@ -215,19 +260,75 @@
                                         </div>
                                         {% endif %}
                                     </div>
-                                    <div class="col-md-4">
-                                        <label for="{{ form.bank_account.id_for_label }}" class="form-label">Bank Account</label>
-                                        {{ form.bank_account }}
-                                        {% if form.bank_account.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {% for error in form.bank_account.errors %}
-                                            {{ error }}
-                                            {% endfor %}
-                                        </div>
-                                        {% endif %}
-                                    </div>
                                 </div>
                             </div>
+
+                            <!-- Add JavaScript for toggling salary fields and currency handling -->
+                            <script>
+                                function toggleSalaryFields(salaryType) {
+                                    const monthlySalaryField = document.getElementById('monthly-salary-field');
+                                    const hourlyRateField = document.getElementById('hourly-rate-field');
+                                    
+                                    if (salaryType === 'monthly') {
+                                        monthlySalaryField.style.display = 'block';
+                                        hourlyRateField.style.display = 'none';
+                                        document.getElementById('{{ form.base_salary.id_for_label }}').required = true;
+                                        document.getElementById('{{ form.hourly_rate.id_for_label }}').required = false;
+                                    } else {
+                                        monthlySalaryField.style.display = 'none';
+                                        hourlyRateField.style.display = 'block';
+                                        document.getElementById('{{ form.base_salary.id_for_label }}').required = false;
+                                        document.getElementById('{{ form.hourly_rate.id_for_label }}').required = true;
+                                    }
+                                    updateCurrencyLabels();
+                                }
+                                
+                                function updateCurrencyLabels() {
+                                    const currencySelect = document.getElementById('{{ form.salary_currency.id_for_label }}');
+                                    if (!currencySelect) return;
+                                    
+                                    const selectedOption = currencySelect.options[currencySelect.selectedIndex];
+                                    if (!selectedOption) return;
+                                    
+                                    const currencyText = selectedOption.text || '';
+                                    const currencyCode = currencyText.split(' - ')[0] || '';
+                                    
+                                    // Update base salary label
+                                    const baseSalaryLabel = document.querySelector('label[for="{{ form.base_salary.id_for_label }}"]');
+                                    if (baseSalaryLabel) {
+                                        baseSalaryLabel.textContent = currencyCode ? `Base Salary (${currencyCode})` : 'Base Salary';
+                                    }
+                                    
+                                    // Update hourly rate label
+                                    const hourlyRateLabel = document.querySelector('label[for="{{ form.hourly_rate.id_for_label }}"]');
+                                    if (hourlyRateLabel) {
+                                        hourlyRateLabel.textContent = currencyCode ? `Hourly Rate (${currencyCode})` : 'Hourly Rate';
+                                    }
+                                }
+                                
+                                // Initialize fields on page load
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    // Set initial salary type display
+                                    const salaryTypeSelect = document.getElementById('{{ form.salary_type.id_for_label }}');
+                                    if (salaryTypeSelect) {
+                                        toggleSalaryFields(salaryTypeSelect.value);
+                                        
+                                        // Add event listener for salary type changes
+                                        salaryTypeSelect.addEventListener('change', function() {
+                                            toggleSalaryFields(this.value);
+                                        });
+                                    }
+                                    
+                                    // Add event listener for currency changes
+                                    const currencySelect = document.getElementById('{{ form.salary_currency.id_for_label }}');
+                                    if (currencySelect) {
+                                        currencySelect.addEventListener('change', updateCurrencyLabels);
+                                    }
+                                    
+                                    // Initial currency label update
+                                    updateCurrencyLabels();
+                                });
+                            </script>
 
                             <!-- Status Section -->
                             <div class="col-12">
