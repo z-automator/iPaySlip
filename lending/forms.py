@@ -5,7 +5,7 @@ from .models import LoanType, Loan, LoanPayment
 class LoanTypeForm(forms.ModelForm):
     class Meta:
         model = LoanType
-        fields = ['name', 'description', 'interest_rate', 'max_amount', 'max_term_months', 'is_active']
+        fields = ['name', 'description', 'max_amount', 'max_term_months', 'is_active']
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),
         }
@@ -13,7 +13,6 @@ class LoanTypeForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['description'].required = False
-        self.fields['interest_rate'].help_text = "Annual interest rate percentage"
         self.fields['max_amount'].help_text = "Maximum loan amount allowed"
         self.fields['max_term_months'].help_text = "Maximum repayment period in months"
 
@@ -21,7 +20,7 @@ class LoanForm(forms.ModelForm):
     class Meta:
         model = Loan
         fields = [
-            'employee', 'loan_type', 'amount', 'interest_rate', 
+            'employee', 'loan_type', 'amount', 
             'term_months', 'purpose', 'notes'
         ]
         widgets = {
@@ -42,10 +41,6 @@ class LoanForm(forms.ModelForm):
             self.fields['total_payable'] = forms.DecimalField(
                 widget=forms.HiddenInput(), required=False
             )
-        
-        # If a loan type is selected, set the interest rate to match
-        if self.instance.loan_type and not self.instance.interest_rate:
-            self.initial['interest_rate'] = self.instance.loan_type.interest_rate
         
     def clean(self):
         cleaned_data = super().clean()

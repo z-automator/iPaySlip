@@ -22,6 +22,12 @@
         </div>
     </div>
 
+    <!-- Alert for interest-free loans -->
+    <div class="alert alert-info mb-4">
+        <i class="bi bi-info-circle me-2"></i>
+        All loans are provided interest-free to support employees.
+    </div>
+
     <!-- Filters -->
     <div class="card mb-4">
         <div class="card-body">
@@ -49,7 +55,6 @@
                         <tr>
                             <th>Name</th>
                             <th>Description</th>
-                            <th>Interest Rate (%)</th>
                             <th>Max Amount ($)</th>
                             <th>Max Term (months)</th>
                             <th>Status</th>
@@ -61,9 +66,8 @@
                         <tr>
                             <td>{{ loan_type.name }}</td>
                             <td>{{ loan_type.description|truncatechars:50 }}</td>
-                            <td>{{ loan_type.interest_rate }}</td>
                             <td>${{ loan_type.max_amount|floatformat:2 }}</td>
-                            <td>{{ loan_type.max_term }}</td>
+                            <td>{{ loan_type.max_term_months }}</td>
                             <td>
                                 {% if loan_type.is_active %}
                                 <span class="badge bg-success">Active</span>

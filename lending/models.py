@@ -7,13 +7,13 @@ class LoanType(models.Model):
     """Loan types with predefined parameters"""
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
-    interest_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0)  # Percentage
+    interest_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0, editable=False)  # Always 0, kept for backward compatibility
     max_amount = models.DecimalField(max_digits=12, decimal_places=2)
     max_term_months = models.PositiveIntegerField()
     is_active = models.BooleanField(default=True)
     
     def __str__(self):
-        return f"{self.name} ({self.interest_rate}%)"
+        return f"{self.name}"
 
 class Loan(models.Model):
     """Employee loan model"""
@@ -38,7 +38,7 @@ class Loan(models.Model):
     
     # Loan details
     amount = models.DecimalField(max_digits=12, decimal_places=2)
-    interest_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0)  # Percentage
+    interest_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0, editable=False)  # Always 0, kept for backward compatibility
     term_months = models.PositiveIntegerField()
     monthly_payment = models.DecimalField(max_digits=12, decimal_places=2)
     total_payable = models.DecimalField(max_digits=12, decimal_places=2)
@@ -70,27 +70,21 @@ class Loan(models.Model):
         return reverse('loan_detail', kwargs={'pk': self.pk})
     
     def calculate_monthly_payment(self):
-        """Calculate monthly payment amount"""
-        if self.interest_rate == 0:
-            # No interest
-            return self.amount / self.term_months
-        
-        # With interest (simple interest for simplicity)
-        total_interest = (self.amount * self.interest_rate / 100)
-        self.total_payable = self.amount + total_interest
-        return self.total_payable / self.term_months
+        """Calculate monthly payment amount (no interest)"""
+        # No interest - just divide total by number of months
+        return self.amount / self.term_months
     
     def save(self, *args, **kwargs):
+        # Ensure interest rate is always 0
+        self.interest_rate = 0
+        
         # Calculate monthly payment if not manually set
         if not self.monthly_payment:
             self.monthly_payment = self.calculate_monthly_payment()
         
-        # Calculate total payable amount
+        # Calculate total payable amount (same as amount since no interest)
         if not self.total_payable:
-            if self.interest_rate == 0:
-                self.total_payable = self.amount
-            else:
-                self.total_payable = self.monthly_payment * self.term_months
+            self.total_payable = self.amount
         
         # Set approval date when approved
         if self.status == self.APPROVED and not self.approval_date:

@@ -30,6 +30,11 @@
                         </div>
                         {% endif %}
                         
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            All loans are provided interest-free to support employees.
+                        </div>
+                        
                         <div class="form-group mb-3">
                             <label for="{{ form.name.id_for_label }}">Name*</label>
                             {{ form.name }}
@@ -49,17 +54,7 @@
                         </div>
                         
                         <div class="row mb-3">
-                            <div class="col-md-4">
-                                <div class="form-group mb-3">
-                                    <label for="{{ form.interest_rate.id_for_label }}">Interest Rate (%)*</label>
-                                    {{ form.interest_rate }}
-                                    {% if form.interest_rate.errors %}
-                                    <div class="text-danger">{{ form.interest_rate.errors }}</div>
-                                    {% endif %}
-                                    <small class="form-text text-muted">{{ form.interest_rate.help_text }}</small>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <div class="form-group mb-3">
                                     <label for="{{ form.max_amount.id_for_label }}">Maximum Amount ($)*</label>
                                     {{ form.max_amount }}
@@ -69,14 +64,14 @@
                                     <small class="form-text text-muted">{{ form.max_amount.help_text }}</small>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <div class="form-group mb-3">
-                                    <label for="{{ form.max_term.id_for_label }}">Maximum Term (months)*</label>
-                                    {{ form.max_term }}
-                                    {% if form.max_term.errors %}
-                                    <div class="text-danger">{{ form.max_term.errors }}</div>
+                                    <label for="{{ form.max_term_months.id_for_label }}">Maximum Term (months)*</label>
+                                    {{ form.max_term_months }}
+                                    {% if form.max_term_months.errors %}
+                                    <div class="text-danger">{{ form.max_term_months.errors }}</div>
                                     {% endif %}
-                                    <small class="form-text text-muted">{{ form.max_term.help_text }}</small>
+                                    <small class="form-text text-muted">{{ form.max_term_months.help_text }}</small>
                                 </div>
                             </div>
                         </div>

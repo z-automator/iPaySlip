@@ -130,7 +130,7 @@
                             <h4><i class="bi bi-calculator me-2"></i>Loan Calculator</h4>
                             <p class="text-muted">Adjust the values below to calculate your loan repayment details.</p>
                             <div class="row">
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="{{ form.amount.id_for_label }}" class="form-label required-field">Loan Amount</label>
                                         {{ form.amount }}
@@ -140,17 +140,7 @@
                                         <div class="form-text text-muted">The total amount you wish to borrow</div>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="{{ form.interest_rate.id_for_label }}" class="form-label required-field">Interest Rate (%)</label>
-                                        {{ form.interest_rate }}
-                                        {% if form.interest_rate.errors %}
-                                        <div class="text-danger">{{ form.interest_rate.errors }}</div>
-                                        {% endif %}
-                                        <div class="form-text text-muted">Annual interest rate percentage</div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="{{ form.term_months.id_for_label }}" class="form-label required-field">Term (months)</label>
                                         {{ form.term_months }}
@@ -224,20 +214,12 @@
                             <span id="summary-principal">$0.00</span>
                         </div>
                         <div class="summary-item">
-                            <span>Interest Rate:</span>
-                            <span id="summary-rate">0.00%</span>
-                        </div>
-                        <div class="summary-item">
                             <span>Loan Term:</span>
                             <span id="summary-term">0 months</span>
                         </div>
                         <div class="summary-item">
                             <span>Monthly Payment:</span>
                             <span id="summary-monthly">$0.00</span>
-                        </div>
-                        <div class="summary-item">
-                            <span>Total Interest:</span>
-                            <span id="summary-interest">$0.00</span>
                         </div>
                         <div class="summary-item total">
                             <span>Total Repayment:</span>
@@ -259,6 +241,10 @@
                             <li class="list-group-item px-0">
                                 <i class="bi bi-check-circle-fill text-success me-2"></i>
                                 Early repayment is allowed without any penalties
+                            </li>
+                            <li class="list-group-item px-0">
+                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                Loans are provided interest-free to support employees
                             </li>
                             <li class="list-group-item px-0">
                                 <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
@@ -293,54 +279,44 @@
         
         // Set up loan calculator
         const amountInput = document.getElementById('{{ form.amount.id_for_label }}');
-        const rateInput = document.getElementById('{{ form.interest_rate.id_for_label }}');
         const termInput = document.getElementById('{{ form.term_months.id_for_label }}');
         
         // Summary elements
         const summaryPrincipal = document.getElementById('summary-principal');
-        const summaryRate = document.getElementById('summary-rate');
         const summaryTerm = document.getElementById('summary-term');
         const summaryMonthly = document.getElementById('summary-monthly');
-        const summaryInterest = document.getElementById('summary-interest');
         const summaryTotal = document.getElementById('summary-total');
         
         // Function to calculate loan details
         function calculateLoan() {
             const principal = parseFloat(amountInput.value) || 0;
-            const rate = parseFloat(rateInput.value) || 0;
             const term = parseInt(termInput.value) || 0;
             
             // Update summary display
             summaryPrincipal.textContent = '$' + principal.toFixed(2);
-            summaryRate.textContent = rate.toFixed(2) + '%';
             summaryTerm.textContent = term + ' months';
             
-            // Calculate monthly payment (simple interest for simplicity)
-            const totalInterest = principal * (rate / 100);
-            const totalRepayment = principal + totalInterest;
-            const monthlyPayment = term > 0 ? totalRepayment / term : 0;
+            // Calculate monthly payment (no interest)
+            const monthlyPayment = term > 0 ? principal / term : 0;
+            const totalRepayment = principal; // Total repayment is the same as principal (no interest)
             
             summaryMonthly.textContent = '$' + monthlyPayment.toFixed(2);
-            summaryInterest.textContent = '$' + totalInterest.toFixed(2);
             summaryTotal.textContent = '$' + totalRepayment.toFixed(2);
         }
         
         // Add event listeners to inputs
         if (amountInput) amountInput.addEventListener('input', calculateLoan);
-        if (rateInput) rateInput.addEventListener('input', calculateLoan);
         if (termInput) termInput.addEventListener('input', calculateLoan);
         
         // Initialize with current values
         calculateLoan();
         
-        // Handle loan type selection to update interest rate
+        // Handle loan type selection
         const loanTypeSelect = document.getElementById('{{ form.loan_type.id_for_label }}');
         if (loanTypeSelect) {
             loanTypeSelect.addEventListener('change', function() {
-                // In a real application, you would fetch the interest rate for the selected loan type
-                // This is a simplified example
-                // You could use AJAX to get the loan type details from the server
-                console.log('Loan type changed, would update interest rate here');
+                // Handle loan type specific logic if needed
+                console.log('Loan type changed');
             });
         }
     });
