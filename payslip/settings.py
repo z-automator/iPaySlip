@@ -1,8 +1,14 @@
 import os
 from pathlib import Path
+import environ
+import dj_database_url  # Add this import
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables
+env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))  # Read .env file
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -78,24 +84,27 @@ WSGI_APPLICATION = 'payslip.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+# Parse database connection url
+DATABASE_URL = env('DATABASE_URL', default=None)
 
-# For PostgreSQL, uncomment and configure as needed
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'payslip_db',
-#         'USER': 'postgres',
-#         'PASSWORD': 'postgres',
-#         'HOST': 'localhost',
-#         'PORT': '5432',
-#     }
-# }
+if DATABASE_URL:
+    # Use DATABASE_URL if it exists
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
+    }
+else:
+    # Fallback to individual settings
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': env('DATABASE_NAME', default='postgres'),
+            'USER': env('DATABASE_USER', default='postgres'),
+            'PASSWORD': env('DATABASE_PASSWORD', default=''),
+            'HOST': env('DATABASE_HOST', default='localhost'),
+            'PORT': env('DATABASE_PORT', default='5432'),
+            'OPTIONS': {'sslmode': env('DATABASE_SSL_MODE', default='require')},
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -184,5 +193,5 @@ AUTHENTICATION_BACKENDS = [
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_EMAIL_VERIFICATION = 'optional'  # Set to 'mandatory' in production 
