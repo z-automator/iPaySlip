@@ -44,6 +44,21 @@
         color: #0d6efd;
         margin-bottom: 15px;
     }
+    /* Fix for dropdown menus */
+    .form-select {
+        z-index: 1;
+        position: relative;
+    }
+    .form-text {
+        position: relative;
+        z-index: 0;
+        margin-top: 8px; /* Increase margin for help text */
+        display: block;
+    }
+    /* Add more space below each form group */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
 </style>
 {% endblock %}
 
@@ -89,23 +104,23 @@
                         <h5 class="mb-3 border-bottom pb-2">Applicant Information</h5>
                         <div class="row mb-4">
                             <div class="col-md-6">
-                                <div class="form-group mb-3">
+                                <div class="form-group">
                                     <label for="{{ form.employee.id_for_label }}" class="form-label required-field">Employee</label>
                                     {{ form.employee }}
                                     {% if form.employee.errors %}
                                     <div class="text-danger">{{ form.employee.errors }}</div>
                                     {% endif %}
-                                    <small class="form-text text-muted">Select the employee applying for the loan</small>
+                                    <div class="form-text text-muted">Select the employee applying for the loan</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="form-group mb-3">
+                                <div class="form-group">
                                     <label for="{{ form.loan_type.id_for_label }}" class="form-label required-field">Loan Type</label>
                                     {{ form.loan_type }}
                                     {% if form.loan_type.errors %}
                                     <div class="text-danger">{{ form.loan_type.errors }}</div>
                                     {% endif %}
-                                    <small class="form-text text-muted">Select the type of loan you're applying for</small>
+                                    <div class="form-text text-muted">Select the type of loan you're applying for</div>
                                 </div>
                             </div>
                         </div>
@@ -116,66 +131,66 @@
                             <p class="text-muted">Adjust the values below to calculate your loan repayment details.</p>
                             <div class="row">
                                 <div class="col-md-4">
-                                    <div class="form-group mb-3">
+                                    <div class="form-group">
                                         <label for="{{ form.amount.id_for_label }}" class="form-label required-field">Loan Amount</label>
                                         {{ form.amount }}
                                         {% if form.amount.errors %}
                                         <div class="text-danger">{{ form.amount.errors }}</div>
                                         {% endif %}
-                                        <small class="form-text text-muted">The total amount you wish to borrow</small>
+                                        <div class="form-text text-muted">The total amount you wish to borrow</div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
-                                    <div class="form-group mb-3">
+                                    <div class="form-group">
                                         <label for="{{ form.interest_rate.id_for_label }}" class="form-label required-field">Interest Rate (%)</label>
                                         {{ form.interest_rate }}
                                         {% if form.interest_rate.errors %}
                                         <div class="text-danger">{{ form.interest_rate.errors }}</div>
                                         {% endif %}
-                                        <small class="form-text text-muted">Annual interest rate percentage</small>
+                                        <div class="form-text text-muted">Annual interest rate percentage</div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
-                                    <div class="form-group mb-3">
+                                    <div class="form-group">
                                         <label for="{{ form.term_months.id_for_label }}" class="form-label required-field">Term (months)</label>
                                         {{ form.term_months }}
                                         {% if form.term_months.errors %}
                                         <div class="text-danger">{{ form.term_months.errors }}</div>
                                         {% endif %}
-                                        <small class="form-text text-muted">Number of months to repay the loan</small>
+                                        <div class="form-text text-muted">Number of months to repay the loan</div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         
                         {% if form.status and not form.status.is_hidden %}
-                        <div class="form-group mb-3">
+                        <div class="form-group">
                             <label for="{{ form.status.id_for_label }}" class="form-label">Status</label>
                             {{ form.status }}
                             {% if form.status.errors %}
                             <div class="text-danger">{{ form.status.errors }}</div>
                             {% endif %}
-                            <small class="form-text text-muted">Current status of the loan application</small>
+                            <div class="form-text text-muted">Current status of the loan application</div>
                         </div>
                         {% endif %}
                         
                         <h5 class="mb-3 border-bottom pb-2">Purpose & Documentation</h5>
-                        <div class="form-group mb-3">
+                        <div class="form-group">
                             <label for="{{ form.purpose.id_for_label }}" class="form-label required-field">Loan Purpose</label>
                             {{ form.purpose }}
                             {% if form.purpose.errors %}
                             <div class="text-danger">{{ form.purpose.errors }}</div>
                             {% endif %}
-                            <small class="form-text text-muted">Explain why you need this loan and how you plan to use it</small>
+                            <div class="form-text text-muted">Explain why you need this loan and how you plan to use it</div>
                         </div>
                         
-                        <div class="form-group mb-3">
+                        <div class="form-group">
                             <label for="{{ form.notes.id_for_label }}" class="form-label">Additional Notes</label>
                             {{ form.notes }}
                             {% if form.notes.errors %}
                             <div class="text-danger">{{ form.notes.errors }}</div>
                             {% endif %}
-                            <small class="form-text text-muted">Any additional information that might support your application</small>
+                            <div class="form-text text-muted">Any additional information that might support your application</div>
                         </div>
                         
                         <div class="mt-4 text-end">
@@ -258,7 +273,7 @@
 </div>
 {% endblock %}
 
-{% block javascript %}
+{% block extra_js %}
 <script>
     // Add Bootstrap classes to form inputs
     document.addEventListener('DOMContentLoaded', function() {
