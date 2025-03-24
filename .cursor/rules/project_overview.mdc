@@ -1,0 +1,109 @@
+---
+description: Project Overview Rules When understanding the system architecture as a whole When adding new features that span multiple components When implementing cross-cutting concerns When setting up development environments When deploying the application When documenting code or features When troubleshooting issues that cross module boundaries When onboarding new developers to the project
+globs: 
+alwaysApply: false
+---
+---
+description: Project Overview and Architecture Guidelines
+globs: **/*.py, **/*.html
+---
+
+# Payslip System Project Overview
+
+## System Architecture
+
+This Django-based payroll system is designed to manage employee payroll processing, loan management, and payslip generation with a focus on role-based access control and financial accuracy.
+
+### Core Modules
+
+1. **Employee Management**
+   - Employee record management
+   - Department organization
+   - Salary and employment information tracking
+
+2. **Payroll Processing**
+   - Salary calculation with currency conversion
+   - Tax and deduction management
+   - Payroll period handling
+   - Payroll templates for efficient processing
+   - Bulk payroll generation
+
+3. **Lending System**
+   - Loan type configuration
+   - Loan application and approval workflow
+   - Repayment tracking
+   - Integration with payroll for automatic deductions
+
+4. **PDF Generation**
+   - Payslip rendering with professional formatting
+   - Report generation
+   - Windows-compatible PDF generation via xhtml2pdf
+
+5. **Authentication & Security**
+   - Email-based authentication with django-allauth
+   - Permission-based access control
+   - Role-specific functionality
+
+### Technology Stack
+
+- **Backend**: Django 4.2+
+- **Database**: SQLite (development), PostgreSQL (production)
+- **Frontend**: Bootstrap 5
+- **Authentication**: Django-allauth
+- **PDF Generation**: xhtml2pdf
+- **Scheduled Tasks**: Celery (planned)
+
+## Development Standards
+
+1. **Code Organization**
+   - Follow Django app-based architecture
+   - Maintain separation of concerns between apps
+   - Use Django's built-in features where appropriate
+   - Follow Django's model-view-template pattern
+
+2. **Financial Accuracy**
+   - Always use Decimal for currency values
+   - Convert between types carefully to avoid precision errors
+   - Store both original and converted currency values
+   - Validate financial calculations with unit tests
+
+3. **User Experience**
+   - Provide clear validation feedback
+   - Implement proper permission checks
+   - Create intuitive workflow for complex processes
+   - Design responsive UI that works on different devices
+
+4. **Security**
+   - Implement proper authentication and authorization
+   - Validate all user inputs
+   - Secure sensitive financial information
+   - Follow Django security best practices
+
+## Common Pitfalls and Solutions
+
+1. **Type Conversion Issues**
+   - Always convert float to Decimal before mathematical operations
+   - Set default values for optional fields to avoid None/null calculations
+   - Use utility functions for standardized calculations
+
+2. **Database Compatibility**
+   - Maintain compatibility with both SQLite and PostgreSQL
+   - Be mindful of database-specific features
+
+3. **PDF Generation**
+   - Use xhtml2pdf instead of WeasyPrint for Windows compatibility
+   - Keep styling in templates for self-contained PDF generation
+   - Handle file paths properly for static assets
+
+4. **Dependency Management**
+   - Document all requirements in requirements.txt
+   - Specify versions to ensure compatibility
+   - Check OS compatibility for dependencies
+
+## Deployment
+
+- Docker and Docker Compose configuration is provided
+- Production settings should disable DEBUG
+- Use environment variables for sensitive configuration
+- Configure database connection properly
+- Implement proper logging and error handling 

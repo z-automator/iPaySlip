@@ -1,0 +1,81 @@
+---
+description: PDF Generation Rules When creating or modifying payslip templates When implementing report generation functionality When handling static assets for PDF documents When resolving PDF rendering issues When optimizing PDF layout for printing When implementing PDF security features When troubleshooting Windows compatibility issues with PDF generation
+globs: 
+alwaysApply: false
+---
+---
+description: PDF Generation System Guidelines
+globs: templates/payroll/pdf/**, **/utils.py
+---
+
+# PDF Generation for Payslips Component
+
+This module handles the generation of PDF payslips and reports from payroll data, providing professional formatted documents for employees and management.
+
+## Architecture Overview
+
+- **Core Components**:
+  - PDF generation utility functions in `payroll/utils.py`
+  - HTML templates for payslips and reports in `templates/payroll/pdf/`
+  - Integration with payroll views for document delivery
+  - xhtml2pdf library for PDF rendering
+
+- **Key Features**:
+  - Individual payslip generation
+  - Bulk payroll report generation
+  - Support for inline viewing and download
+  - Consistent styling across documents
+  - Company branding integration
+
+## Development Guidelines
+
+1. **PDF Generation Workflow**:
+   - Use `generate_payslip_pdf()` for individual employee payslips
+   - Use `generate_payroll_report()` for bulk reports
+   - HTML templates are rendered first, then converted to PDF
+   - Static assets (CSS, images) are included via link_callback function
+   - Proper error handling for PDF generation issues
+
+2. **HTML Templates**:
+   - Maintain a clean, professional design
+   - Use standard web fonts for compatibility
+   - Define page sizes and margins in CSS using @page rules
+   - Ensure proper layout for printing (avoid page breaks in wrong places)
+   - Organize content into clear sections (header, employee info, earnings, deductions, totals)
+
+3. **Data Preparation**:
+   - Always calculate totals before passing to template
+   - Organize entries into earnings and deductions for clear presentation
+   - Include company information from settings
+   - Format currency values properly with correct decimal places
+   - Generate appropriate filenames based on employee ID and pay period
+
+4. **Error Handling**:
+   - Check for missing required data before generating PDF
+   - Capture and log PDF generation errors
+   - Provide fallback options when PDF generation fails
+   - Validate template existence before attempting to render
+   - Handle edge cases like very large payroll reports
+
+5. **Security Considerations**:
+   - Only authorized users should be able to generate PDFs
+   - Ensure payslip URLs are not predictable/guessable
+   - Apply proper permission checks before serving PDFs
+   - Consider implementing signed URLs for PDF access
+   - Be mindful of sensitive financial data in PDFs
+
+## Technical Approach
+
+- Windows compatibility is a priority, which is why xhtml2pdf is used instead of WeasyPrint
+- PDF content is served as inline by default, but can be changed to attachment for download
+- CSS styling is included directly in templates for self-contained generation
+- Each PDF generation produces a specific HTTP response with appropriate headers
+- File-like objects (BytesIO) are used for efficient PDF creation without temporary files
+
+## Testing Focus Areas
+
+- PDF rendering across different browsers and devices
+- Correct calculation of totals and alignment of values
+- Handling of various edge cases (long names, large numbers, etc.)
+- Permissions and access controls for PDF generation
+- Performance with large datasets for bulk reports 

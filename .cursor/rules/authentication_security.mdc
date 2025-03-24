@@ -1,0 +1,82 @@
+---
+description: Authentication & Security Rules When configuring user authentication or permissions When implementing role-based access controls When adding login/logout functionality When securing sensitive financial or personal data When handling user session management When implementing email verification workflows When configuring production security settings
+globs: 
+alwaysApply: false
+---
+---
+description: Authentication and Security Guidelines
+globs: **/settings.py, **/adapters.py, **/views.py
+---
+
+# Authentication and Security Component
+
+This module manages user authentication, permission handling, and security controls throughout the payroll system to ensure proper access control and data protection.
+
+## Architecture Overview
+
+- **Core Components**:
+  - Django's built-in authentication system
+  - Django-allauth for email-based authentication
+  - Custom permission-based access control
+  - Role-based views with LoginRequiredMixin and PermissionRequiredMixin
+  - Custom account adapter for extended functionality
+
+- **Key Features**:
+  - Email-based authentication
+  - Permission-based access to sensitive operations
+  - Fine-grained permission control for payroll, employee, and loan operations
+  - Custom login/logout flow
+  - Session security and management
+
+## Development Guidelines
+
+1. **Authentication Configuration**:
+   - Email is the primary authentication method (not username)
+   - Email verification is marked as 'optional' in development but should be 'mandatory' in production
+   - Custom account adapter (CustomAccountAdapter) handles specialized authentication behavior
+   - Login redirects to dashboard, logout redirects to home page
+   - All authentication settings are centralized in settings.py
+
+2. **Permission Structure**:
+   - Model-level permissions (view, add, change, delete) for all key models
+   - All sensitive views are protected with LoginRequiredMixin
+   - Operations that modify data require specific permissions via PermissionRequiredMixin
+   - Function-based views use login_required and permission_required decorators
+   - Permission checks should happen at the view level, not in templates
+
+3. **View Protection**:
+   - Class-based views should inherit from LoginRequiredMixin
+   - Views that modify data should also inherit from PermissionRequiredMixin
+   - Always specify permission_required attribute for permission-protected views
+   - For function-based views, stack decorators with login_required first, then permission_required
+   - Bulk operations require additional confirmation steps
+
+4. **Security Best Practices**:
+   - Django's password validation is enabled with standard validators
+   - SECRET_KEY must be kept secure and changed in production
+   - DEBUG should be disabled in production
+   - Use HTTPS in production environment
+   - Database credentials should be stored in environment variables, not in settings
+
+5. **Development vs Production**:
+   - Development uses console email backend
+   - SQLite is used for development, PostgreSQL for production
+   - Debug mode should only be enabled in development
+   - Add proper ALLOWED_HOSTS in production
+   - Configure proper CSRF protection in production
+
+## Technical Implementation
+
+- Django's auth system provides the core authentication functionality
+- django-allauth extends this with better email support and customization
+- Permissions are defined at the model level and enforced in views
+- Custom adapters provide fine-tuned control over authentication flows
+- Security settings are centralized in the project settings
+
+## Testing Focus Areas
+
+- Authentication flows (login, logout, password reset)
+- Permission controls on sensitive operations
+- Redirection after authentication actions
+- Security of sensitive data (payroll info, personal details)
+- Edge cases in permission handling 

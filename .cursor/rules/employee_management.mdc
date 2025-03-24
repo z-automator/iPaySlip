@@ -1,0 +1,63 @@
+---
+description: Employee Management Rules When working with employee data models, forms, or views When implementing department structure functionality When handling salary calculations or employment status changes When building or debugging employee profile interfaces When adding validation to employee-related inputs When implementing search or filtering for employee records
+globs: 
+alwaysApply: false
+---
+---
+description: Employee Management Module Guidelines
+globs: employees/**, templates/employees/**, **/employee_*.html
+---
+
+# Employee Management Component
+
+This module handles all employee-related functionality in the payroll system, including employee records, department management, and employment information.
+
+## Architecture Overview
+
+- **Models**: 
+  - `Employee`: Core model representing staff members with personal/employment information
+  - `Department`: Organization units for categorizing employees
+
+- **Views**: 
+  - Class-based views for CRUD operations
+  - Permission-based access control using Django's auth system
+  - Search, filtering, and pagination capabilities
+
+- **Templates**:
+  - Bootstrap 5 UI components 
+  - Form handling with client-side validation
+  - Responsive design for different screen sizes
+
+## Development Guidelines
+
+1. **Data Handling**:
+   - Always validate salary type (monthly/hourly) when creating/updating employees
+   - Currency handling should use the Currency model from the payroll app
+   - Employee IDs use UUID for security and uniqueness
+
+2. **Forms**:
+   - First/last name fields are separate from the User model but linked
+   - Salary fields (base_salary/hourly_rate) should conditionally display based on salary_type
+   - Currency selection affects how salaries are displayed and calculated
+
+3. **Model Relations**:
+   - Employee has a one-to-one relationship with Django User model
+   - Department relationship allows employees to be grouped
+   - Employee model provides properties for salary conversion to base currency (EGP)
+
+4. **Security**:
+   - All views require login
+   - Create/update/delete operations require specific permissions
+   - Employee data should be properly sanitized before display
+
+5. **UI Best Practices**:
+   - Employee list view supports filtering by department and active status
+   - Detail view shows comprehensive employee information with appropriate formatting
+   - Forms provide clear validation feedback and help text
+
+## Testing Focus Areas
+
+- Employee creation with various salary types
+- Department assignment and filtering
+- Salary currency conversion
+- Permissions for different user roles 

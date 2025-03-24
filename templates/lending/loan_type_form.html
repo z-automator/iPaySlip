@@ -77,6 +77,7 @@
                         </div>
                         
                         <div class="form-group mb-3">
+                            <label class="form-label d-block">Status</label>
                             <div class="form-check form-switch">
                                 {{ form.is_active }}
                                 <label class="form-check-label" for="{{ form.is_active.id_for_label }}">Active</label>
@@ -93,7 +94,7 @@
                             {% if form.eligibility_criteria.errors %}
                             <div class="text-danger">{{ form.eligibility_criteria.errors }}</div>
                             {% endif %}
-                            <small class="form-text text-muted">{{ form.eligibility_criteria.help_text }}</small>
+                            <small class="form-text text-muted">TODO: Implement specific eligibility criteria for this loan type.</small>
                         </div>
                         
                         <div class="mt-4 text-end">
@@ -110,7 +111,7 @@
 </div>
 {% endblock %}
 
-{% block javascript %}
+{% block extra_js %}
 <script>
     // Add Bootstrap classes to form inputs
     document.addEventListener('DOMContentLoaded', function() {
@@ -131,6 +132,13 @@
         selects.forEach(select => {
             select.classList.add('form-select');
         });
+        
+        // Style the eligibility criteria textarea
+        const eligibilityTextarea = document.getElementById('{{ form.eligibility_criteria.id_for_label }}');
+        if (eligibilityTextarea) {
+            eligibilityTextarea.setAttribute('rows', '5');
+            eligibilityTextarea.setAttribute('placeholder', 'TODO: Add specific eligibility requirements for this loan type (e.g., documentation needed, minimum tenure, job grade, etc.)');
+        }
     });
 </script>
 {% endblock %} 

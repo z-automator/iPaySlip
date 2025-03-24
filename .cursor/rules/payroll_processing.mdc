@@ -1,0 +1,82 @@
+---
+description: Payroll Processing Rules When calculating salaries, taxes, or deductions When handling multiple currencies or exchange rates When creating or modifying payroll templates When implementing bulk payroll generation When handling payroll periods or payment scheduling When resolving decimal calculation issues or precision errors When implementing tax tier logic or progressive taxation
+globs: 
+alwaysApply: false
+---
+---
+description: Payroll Processing Module Guidelines
+globs: payroll/**, templates/payroll/**, **/payroll_*.html, **/process_payroll.html
+---
+
+# Payroll Processing Component
+
+This module handles all payroll-related functionality including salary calculation, deductions, tax handling, and payslip generation.
+
+## Architecture Overview
+
+- **Core Models**:
+  - `Payroll`: Main model for employee payroll records
+  - `PayrollEntry`: Individual entries (earnings/deductions) within a payroll
+  - `PayrollPeriod`: Time periods for payroll processing
+  - `Currency`: Currency management with exchange rates
+  - `TaxTier`: Income tax brackets for calculations
+  - `StandardPayrollItem`: Reusable payroll items (earnings/deductions)
+  - `EmployeePayrollTemplate`: Templates for recurring payroll entries
+
+- **Key Views**:
+  - CRUD operations for all payroll-related entities
+  - `PayrollProcessView`: Bulk payroll processing for multiple employees
+  - PDF generation for payslips and reports
+  - Tax calculation utilities
+
+- **Templates**:
+  - Bootstrap 5 form UI for payroll management
+  - Detailed payroll views with entry breakdown
+  - PDF templates for output documents
+
+## Development Guidelines
+
+1. **Payroll Processing Flow**:
+   - Pay periods must be properly defined before processing
+   - Validate employee data completeness before creating payrolls
+   - Handle both monthly salary and hourly rate employees
+   - Apply appropriate currency conversion using exchange rates
+
+2. **Financial Calculations**:
+   - Store both original currency and EGP values for reporting
+   - Always convert Decimal to proper type before mathematical operations
+   - Set default values for optional fields to avoid None/null calculations
+   - Use utility functions in payroll/utils.py for tax calculations
+
+3. **Payroll Entries**:
+   - Basic salary/wages should always be the first entry
+   - Categorize entries correctly as earnings or deductions
+   - Update payroll totals after any entry modifications
+   - Loan repayments should be handled automatically when present
+
+4. **Templates and Payroll History**:
+   - Use EmployeePayrollTemplate for faster payroll creation
+   - Update templates after successful payroll processing
+   - Handle exception when employee has no template
+   - Maintain audit trail with created_at/updated_at timestamps
+
+5. **PDF Generation**:
+   - Use xhtml2pdf for Windows-compatible PDF generation
+   - Follow standard payslip format in templates/payroll/pdf/
+   - Include proper error handling for PDF generation failures
+   - Apply consistent styling across all generated documents
+
+## Security Considerations
+
+- All payroll views require login
+- Most operations require specific permissions
+- Bulk operations require additional confirmation
+- Sensitive financial data should be properly secured in transit and storage
+
+## Testing Priority Areas
+
+- Currency conversion and exchange rate handling
+- Tax calculation with multiple brackets
+- Loan repayment integration
+- PDF generation with various data scenarios
+- Payroll totals recalculation after entry modifications 

@@ -59,6 +59,13 @@
     .form-group {
         margin-bottom: 1.5rem;
     }
+    .eligibility-list {
+        padding-left: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    .eligibility-list li {
+        margin-bottom: 0.5rem;
+    }
 </style>
 {% endblock %}
 
@@ -92,6 +99,11 @@
                     </h5>
                 </div>
                 <div class="card-body">
+                    <div class="alert alert-info mb-4">
+                        <i class="bi bi-info-circle me-2"></i>
+                        All loans are interest-free to support our employees. Your loan application will be reviewed by HR based on eligibility criteria.
+                    </div>
+                    
                     <form method="post" enctype="multipart/form-data" id="loanForm">
                         {% csrf_token %}
                         
@@ -228,6 +240,14 @@
                     </div>
                     
                     <div class="mt-4">
+                        <h5 class="mb-3">Eligibility Criteria</h5>
+                        <div class="alert alert-secondary">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>TODO:</strong> Implement specific eligibility criteria display for each loan type.
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
                         <h5 class="mb-3">Important Information</h5>
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item px-0">

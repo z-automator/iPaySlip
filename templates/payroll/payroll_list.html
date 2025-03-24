@@ -124,13 +124,13 @@
             <form method="post" action="{% url 'bulk_update_payroll_status' %}">
                 {% csrf_token %}
                 <div class="row mb-3">
-                    <div class="col-12 col-md-6">
-                        <div class="d-flex align-items-center">
-                            <div class="form-check me-3">
+                    <div class="col-12">
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <div class="form-check me-2">
                                 <input class="form-check-input" type="checkbox" id="selectAll">
                                 <label class="form-check-label" for="selectAll">Select All</label>
                             </div>
-                            <select name="new_status" class="form-select me-2" required>
+                            <select name="new_status" class="form-select me-2" style="max-width: 200px;" required>
                                 <option value="">Change Status To...</option>
                                 {% for status_value, status_label in status_choices %}
                                 <option value="{{ status_value }}">{{ status_label }}</option>

@@ -1,0 +1,85 @@
+---
+description: Lending/Loan System Rules When implementing loan application workflows When handling loan approval or rejection processes When calculating loan repayment schedules When integrating loan deductions with payroll processing When building loan type configuration interfaces When tracking payment history or remaining balances
+globs: 
+alwaysApply: false
+---
+---
+description: Lending and Loan Management System Guidelines
+globs: lending/**, templates/lending/**, **/loan_*.html
+---
+
+# Lending and Loan Management Component
+
+This module handles the company's internal loan system, allowing employees to apply for, manage, and repay loans as part of the payroll ecosystem.
+
+## Architecture Overview
+
+- **Core Models**:
+  - `LoanType`: Defines loan parameters like maximum amount and term
+  - `Loan`: Main model for employee loan records with approval workflow
+  - `LoanPayment`: Tracks individual repayments against loans
+
+- **Key Views**:
+  - Loan application and approval workflow
+  - Loan repayment management
+  - Loan type configuration
+  - Integration with payroll system for automatic deductions
+
+- **Templates**:
+  - Loan application forms
+  - Approval/rejection workflows
+  - Payment history and tracking
+  - Administrative interfaces for loan management
+
+## Development Guidelines
+
+1. **Loan Application Process**:
+   - Employees can only apply for active loan types
+   - Validate loan amount against maximum allowed by loan type
+   - Validate term months against maximum allowed by loan type
+   - Purpose field is required for all loan applications
+   - Calculate monthly payment and total payable automatically
+
+2. **Loan Workflow States**:
+   - Pending → Approved → Active → Completed (or Cancelled)
+   - Pending → Rejected (end state)
+   - Status transitions should update appropriate date fields automatically
+   - Approval requires appropriate permissions
+   - Rejection requires a reason to be provided
+
+3. **Loan Repayments**:
+   - Manual and automatic repayment options
+   - Track payment dates, amounts, and methods
+   - Update loan remaining balance after each payment
+   - Integrate with payroll system for automatic deductions
+   - Validate that repayment doesn't exceed remaining balance
+
+4. **Financial Calculations**:
+   - Interest rate is always 0% (interest-free loans)
+   - Monthly payment = total amount / term months
+   - Total payable equals the loan amount (no interest)
+   - Track paid amount and remaining balance
+   - Handle edge cases like final payments that may be smaller
+
+5. **Business Rules**:
+   - Employee can't have multiple active loans of the same type
+   - Loan approval requires manager/admin permission
+   - Loan amount must be within the employee's eligibility
+   - Repayment schedule should follow company policy
+   - Loan completion should be properly recorded with actual end date
+
+## Security Considerations
+
+- All lending views require login
+- Most operations require specific permissions
+- Approval/rejection workflows have additional authorization checks
+- Financial transaction data should be properly secured
+- Audit trail maintained with timestamps and user tracking
+
+## Testing Priority Areas
+
+- Loan application validation rules
+- Approval/rejection workflow
+- Payment calculations and tracking
+- Integration with payroll system
+- Status transitions and date handling 
