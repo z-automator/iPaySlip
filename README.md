@@ -13,150 +13,215 @@ A comprehensive payroll management system built with Django that supports employ
 
 ## Technology Stack
 
-- **Backend**: Django 4.2+
-- **Database**: SQLite (development) / PostgreSQL (production)
-- **Authentication**: Django-allauth
-- **Frontend**: Bootstrap 5
-- **PDF Generation**: ReportLab/xhtml2pdf
-- **Task Scheduling**: Celery (for automated tasks)
+- Django 4.2+
+- PostgreSQL (Supabase)
+- Redis (for caching and Celery)
+- Bootstrap 5 (UI)
+- ReportLab/xhtml2pdf (PDF generation)
+- Celery (scheduled tasks)
+- Nginx (production server)
+- Gunicorn (WSGI server)
 
-## Installation
+## Prerequisites
 
-### Option 1: Standard Installation
+- Python 3.11+
+- PostgreSQL or Supabase account
+- Redis server (for production)
+- Email service account (e.g., Gmail)
 
-1. Clone the repository:
-   ```
-   git clone https://github.com/yourusername/payslip.git
-   cd payslip
-   ```
+## Installation & Setup
 
-2. Create and activate a virtual environment:
-   ```
+### Option 1: Using the Run Script (Recommended)
+
+The project includes a convenient `run.py` script that handles all the setup and running of the application:
+
+1. **Create and activate virtual environment**:
+   ```bash
    python -m venv venv
-   # On Windows
-   venv\Scripts\activate
-   # On macOS/Linux
+   # Windows
+   .\venv\Scripts\activate
+   # Linux/Mac
    source venv/bin/activate
    ```
 
-3. Install dependencies:
-   ```
+2. **Install dependencies**:
+   ```bash
    pip install -r requirements.txt
    ```
 
-4. Apply migrations:
+3. **Run the application**:
+   ```bash
+   # Development mode (default)
+   python run.py
+
+   # Production mode
+   python run.py --env prod
    ```
+
+The script will:
+- Check for required dependencies
+- Set up environment variables from .env.example if .env doesn't exist
+- Create necessary directories
+- Run database migrations
+- Collect static files
+- Start the appropriate server (development or production)
+
+### Option 2: Manual Setup
+
+1. **Create and activate virtual environment**:
+   ```bash
+   python -m venv venv
+   # Windows
+   .\venv\Scripts\activate
+   # Linux/Mac
+   source venv/bin/activate
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Set up environment variables**:
+   - Copy `.env.example` to `.env` for development or `.env.prod` for production
+   - Update the variables with your values:
+     ```
+     # Database (Supabase)
+     DATABASE_URL=your-supabase-connection-url
+     DATABASE_SSL_MODE=require
+
+     # Redis (if using)
+     REDIS_URL=redis://localhost:6379/1
+     
+     # Email
+     EMAIL_HOST_USER=your-email@gmail.com
+     EMAIL_HOST_PASSWORD=your-app-specific-password
+     ```
+
+4. **Initialize the database**:
+   ```bash
    python manage.py migrate
+   python manage.py createsuperuser
    ```
 
-5. Create a superuser:
-   ```
-   python manage.py create_superuser
-   ```
-
-6. Run the development server:
-   ```
+5. **Run the development server**:
+   ```bash
+   # Development
    python manage.py runserver
+
+   # Production
+   python manage.py collectstatic
+   gunicorn payslip.wsgi_prod:application --bind 0.0.0.0:8000 --workers 3
    ```
 
-7. Access the application at http://127.0.0.1:8000/
+6. **Start Celery (optional, for background tasks)**:
+   ```bash
+   # Start Redis first if not running
+   redis-server
 
-### Option 2: Docker Installation
+   # Start Celery worker
+   celery -A payslip worker -l info
 
-1. Clone the repository:
-   ```
-   git clone https://github.com/yourusername/payslip.git
-   cd payslip
-   ```
-
-2. Create a `.env` file from the example:
-   ```
-   cp .env.example .env
-   ```
-   Edit the `.env` file to set your desired configuration.
-
-3. Build and start the Docker containers:
-   ```
-   docker-compose up -d --build
+   # Start Celery beat (for scheduled tasks)
+   celery -A payslip beat -l info
    ```
 
-4. Create a superuser:
-   ```
-   docker-compose exec web python manage.py create_superuser
-   ```
+### Option 3: Docker Deployment
 
-5. Access the application at http://localhost:8000/
+1. **Set up environment variables**:
+   - Copy `.env.prod.example` to `.env.prod`
+   - Update the variables with your production values
 
-6. To stop the containers:
-   ```
-   docker-compose down
-   ```
+2. **Build and start the containers**:
+   ```bash
+   # Development
+   docker-compose up --build
 
-7. To view logs:
-   ```
-   docker-compose logs -f
+   # Production
+   docker-compose -f docker-compose.prod.yml up --build -d
    ```
 
-## Initial Setup
+3. **Run migrations and create superuser**:
+   ```bash
+   # Development
+   docker-compose exec web python manage.py migrate
+   docker-compose exec web python manage.py createsuperuser
 
-1. Create payroll periods using the management command:
+   # Production
+   docker-compose -f docker-compose.prod.yml exec web python manage.py migrate
+   docker-compose -f docker-compose.prod.yml exec web python manage.py createsuperuser
    ```
-   python manage.py create_payroll_period
+
+## Development Setup
+
+1. **Install development dependencies**:
+   ```bash
+   pip install -r requirements-dev.txt
    ```
 
-2. Create tax tiers for income tax calculation:
+2. **Set up pre-commit hooks**:
+   ```bash
+   pre-commit install
    ```
-   python manage.py create_tax_tiers
+
+3. **Run tests**:
+   ```bash
+   python manage.py test
    ```
 
-## Usage
+## Production Deployment Checklist
 
-1. **Employee Management**:
-   - Add employees with their personal and financial information
-   - Manage departments and positions
+1. **Update production settings**:
+   - Set `DEBUG=False`
+   - Configure `ALLOWED_HOSTS`
+   - Set up proper email backend
+   - Configure SSL/HTTPS settings
 
-2. **Payroll Processing**:
-   - Create payroll periods
-   - Process payroll for all employees or individually
-   - Add custom earnings and deductions
+2. **Set up SSL certificate**:
+   - Obtain SSL certificate (e.g., Let's Encrypt)
+   - Update Nginx configuration
+   - Enable HTTPS redirects
 
-3. **Tax Management**:
-   - Configure tax tiers for progressive taxation
-   - Automatic tax calculation during payroll processing
+3. **Configure backups**:
+   - Set up database backups
+   - Configure media files backup
+   - Test restore procedures
 
-4. **Loan Management**:
-   - Create loan types with different interest rates and terms
-   - Process loan applications and approvals
-   - Track loan repayments and balances
+4. **Set up monitoring**:
+   - Configure error logging
+   - Set up performance monitoring
+   - Configure alert notifications
 
-5. **Reporting**:
-   - Generate individual payslips as PDFs
-   - View payroll summaries and reports
+## Project Structure
+
+```
+payslip/
+├── core/           # Core functionality
+├── employees/      # Employee management
+├── payroll/        # Payroll processing
+├── lending/        # Loan management
+├── templates/      # HTML templates
+├── static/         # Static files
+├── media/         # User-uploaded files
+└── payslip/       # Project settings
+```
+
+## API Documentation
+
+API documentation is available at `/api/docs/` when running the server.
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
-
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-Please ensure your code follows the project's coding style and includes appropriate tests.
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
 ## License
 
-This project is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-You are free to:
-- Share — copy and redistribute the material in any medium or format
-- Adapt — remix, transform, and build upon the material
+## Support
 
-Under the following terms:
-- Attribution — You must give appropriate credit, provide a link to the license, and indicate if changes were made.
-- NonCommercial — You may not use the material for commercial purposes.
-
-## Contact
-
-For any questions or support, please open an issue on GitHub or contact the maintainers directly. 
+For support, email support@yourdomain.com or create an issue in the repository.
