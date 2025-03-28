@@ -64,7 +64,7 @@ def run_development():
 
     # Start development server
     print("\nStarting development server...")
-    subprocess.run([sys.executable, 'manage.py', 'runserver'])
+    subprocess.run([sys.executable, 'manage.py', 'runserver', '127.0.0.1:8000'])
 
 def run_production():
     """Run the application in production mode."""
@@ -79,8 +79,10 @@ def run_production():
             print("Aborted. Please install Redis and Celery for production use.")
             return
 
-    # Create logs directory if it doesn't exist
+    # Create required directories
     Path('logs').mkdir(exist_ok=True)
+    Path('static').mkdir(exist_ok=True)
+    Path('staticfiles').mkdir(exist_ok=True)
 
     # Set production settings
     os.environ['DJANGO_SETTINGS_MODULE'] = 'payslip.settings_prod'
@@ -88,6 +90,11 @@ def run_production():
     # Run migrations
     print("Running migrations...")
     subprocess.run([sys.executable, 'manage.py', 'migrate'])
+
+    # Clean existing static files
+    if os.path.exists('staticfiles'):
+        import shutil
+        shutil.rmtree('staticfiles')
 
     # Collect static files
     print("Collecting static files...")
@@ -105,7 +112,7 @@ def run_production():
         print("\nStarting production server with Waitress...")
         from waitress import serve
         from payslip.wsgi_prod import application
-        serve(application, host='0.0.0.0', port=8000, threads=4)
+        serve(application, host='127.0.0.1', port=8000, threads=4)
     else:
         try:
             # Check if gunicorn is installed

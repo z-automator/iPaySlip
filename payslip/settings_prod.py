@@ -1,25 +1,46 @@
 from .settings import *
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+# Check if running in local development
+IS_LOCAL = env.bool('IS_LOCAL', default=False)
 
-# Security settings
-SECURE_SSL_REDIRECT = True
-SECURE_HSTS_SECONDS = 31536000  # 1 year
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = env.bool('DEBUG', default=False)
+
+# Add Whitenoise Middleware
+MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+
+# Security settings - adjusted based on environment
+SECURE_SSL_REDIRECT = not IS_LOCAL
+SECURE_HSTS_SECONDS = 0 if IS_LOCAL else 31536000  # Use 1 year in production
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not IS_LOCAL
+SECURE_HSTS_PRELOAD = not IS_LOCAL
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-X_FRAME_OPTIONS = 'DENY'
+SESSION_COOKIE_SECURE = not IS_LOCAL
+CSRF_COOKIE_SECURE = not IS_LOCAL
+X_FRAME_OPTIONS = 'SAMEORIGIN' if IS_LOCAL else 'DENY'
 
-# Allow only your domain
-ALLOWED_HOSTS = ['your-domain.com', 'www.your-domain.com']
+# Allow hosts based on environment
+default_allowed_hosts = ['127.0.0.1', 'localhost'] if IS_LOCAL else []
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=default_allowed_hosts)
 
-# Static files
+# Static files configuration
+STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+
+# Use appropriate static files storage based on environment
+STATICFILES_STORAGE = (
+    'django.contrib.staticfiles.storage.StaticFilesStorage'
+    if IS_LOCAL else
+    'whitenoise.storage.CompressedManifestStaticFilesStorage'
+)
+
+# Ensure static directory exists
+os.makedirs(os.path.join(BASE_DIR, 'static'), exist_ok=True)
+os.makedirs(STATIC_ROOT, exist_ok=True)
 
 # Email configuration (replace with your email service settings)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
