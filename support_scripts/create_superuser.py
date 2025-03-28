@@ -2,7 +2,7 @@ import os
 import django
 
 # Set up Django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'payslip_project.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'payslip.settings')
 django.setup()
 
 from django.contrib.auth.models import User
