@@ -195,4 +195,15 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_LOGIN_METHODS = {'email'}
-ACCOUNT_EMAIL_VERIFICATION = 'optional'  # Set to 'mandatory' in production 
+ACCOUNT_EMAIL_VERIFICATION = 'optional'  # Set to 'mandatory' in production
+
+# Cache configuration for development
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    }
+}
+
+# Session configuration for development
+SESSION_ENGINE = 'django.contrib.sessions.backends.db' 
