@@ -43,20 +43,6 @@ def check_optional_dependencies():
     
     return len(missing) == 0
 
-def setup_environment():
-    """Set up the environment variables."""
-    if not os.path.exists('.env'):
-        if os.path.exists('.env.example'):
-            print("Creating .env file from .env.example...")
-            with open('.env.example', 'r') as example, open('.env', 'w') as env:
-                env.write(example.read())
-            print("Please update the .env file with your settings.")
-            return False
-        else:
-            print("No .env or .env.example file found!")
-            return False
-    return True
-
 def run_development():
     """Run the application in development mode."""
     if not check_core_dependencies():
@@ -67,9 +53,6 @@ def run_development():
 
     # Create logs directory if it doesn't exist
     Path('logs').mkdir(exist_ok=True)
-
-    if not setup_environment():
-        return
 
     # Run migrations
     print("Running migrations...")
@@ -98,9 +81,6 @@ def run_production():
 
     # Create logs directory if it doesn't exist
     Path('logs').mkdir(exist_ok=True)
-
-    if not setup_environment():
-        return
 
     # Set production settings
     os.environ['DJANGO_SETTINGS_MODULE'] = 'payslip.settings_prod'
