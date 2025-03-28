@@ -119,7 +119,7 @@ def run_production():
         subprocess.run([
             'gunicorn',
             'payslip.wsgi_prod:application',
-            '--bind', '0.0.0.0:8000',
+            '--bind', '0.0.0.0:8080',
             '--workers', '3',
             '--timeout', '120',
             '--access-logfile', 'logs/access.log',
