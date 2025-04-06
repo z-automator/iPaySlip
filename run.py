@@ -10,12 +10,33 @@ import subprocess
 import argparse
 import platform
 from pathlib import Path
+from dotenv import load_dotenv
+
+def load_environment(env_file=None):
+    """Load environment variables from .env file."""
+    if env_file:
+        if not os.path.exists(env_file):
+            print(f"Warning: Environment file {env_file} not found.")
+            return False
+        load_dotenv(env_file)
+        print(f"Loaded environment from {env_file}")
+    else:
+        # Try to load default .env files in order of preference
+        env_files = ['.env', '.env.local', f'.env.{os.getenv("DJANGO_ENV", "development")}']
+        for env_file in env_files:
+            if os.path.exists(env_file):
+                load_dotenv(env_file)
+                print(f"Loaded environment from {env_file}")
+                return True
+        print("Warning: No environment file found.")
+    return True
 
 def check_core_dependencies():
     """Check if core dependencies are installed."""
     try:
         import django
         import psycopg2
+        import dotenv
         return True
     except ImportError as e:
         print(f"Missing core dependency: {e}")
@@ -53,6 +74,9 @@ def run_development():
 
     # Create logs directory if it doesn't exist
     Path('logs').mkdir(exist_ok=True)
+
+    # Set development settings
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'payslip.settings')
 
     # Run migrations
     print("Running migrations...")
@@ -141,7 +165,15 @@ def main():
         default='dev',
         help='Environment to run the application in (default: dev)'
     )
+    parser.add_argument(
+        '--env-file',
+        help='Path to the environment file to use'
+    )
     args = parser.parse_args()
+
+    # Load environment variables
+    if not load_environment(args.env_file):
+        return
 
     if args.env == 'dev':
         run_development()
