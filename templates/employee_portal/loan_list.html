@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load django_bootstrap5 %}
+
+{% block title %}{% trans "My Loans" %} | iPaySlip{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">{% trans "My Loans" %}</h1>
+        <div>
+            <a href="{% url 'employee_loan_request' %}" class="btn btn-primary me-2">
+                <i class="bi bi-plus-circle me-1"></i> {% trans "Request New Loan" %}
+            </a>
+            <a href="{% url 'employee_dashboard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> {% trans "Back to Dashboard" %}
+            </a>
+        </div>
+    </div>
+    
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            {% if loans %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>{% trans "Request Date" %}</th>
+                                <th>{% trans "Amount" %}</th>
+                                <th>{% trans "Remaining" %}</th>
+                                <th>{% trans "Duration" %}</th>
+                                <th>{% trans "Status" %}</th>
+                                <th>{% trans "Actions" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for loan in loans %}
+                                <tr>
+                                    <td>{{ loan.request_date|date:"M d, Y" }}</td>
+                                    <td>{{ loan.amount }} {{ loan.currency.code }}</td>
+                                    <td>{{ loan.remaining_amount }} {{ loan.currency.code }}</td>
+                                    <td>{{ loan.duration }} {% trans "months" %}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if loan.status == 'pending' %}bg-warning
+                                            {% elif loan.status == 'approved' %}bg-success
+                                            {% elif loan.status == 'active' %}bg-info
+                                            {% elif loan.status == 'completed' %}bg-secondary
+                                            {% else %}bg-danger{% endif %}">
+                                            {{ loan.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'employee_loan_detail' loan.id %}" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-eye me-1"></i> {% trans "View" %}
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% bootstrap_pagination loans %}
+                
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-cash-coin text-muted" style="font-size: 3rem;"></i>
+                    <p class="mt-3 text-muted">{% trans "You don't have any loans yet." %}</p>
+                    <a href="{% url 'employee_loan_request' %}" class="btn btn-primary mt-2">
+                        <i class="bi bi-plus-circle me-1"></i> {% trans "Request New Loan" %}
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load django_bootstrap5 %}
+
+{% block title %}{% trans "Loan Details" %} | iPaySlip{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">{% trans "Loan Details" %}</h1>
+        <a href="{% url 'employee_loan_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> {% trans "Back to Loans" %}
+        </a>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">{% trans "Loan Information" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <h6 class="text-muted mb-2">{% trans "Request Date" %}</h6>
+                            <p class="mb-0 fw-bold">{{ loan.request_date|date:"F d, Y" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">{% trans "Status" %}</h6>
+                            <p class="mb-0">
+                                <span class="badge 
+                                    {% if loan.status == 'pending' %}bg-warning
+                                    {% elif loan.status == 'approved' %}bg-success
+                                    {% elif loan.status == 'active' %}bg-info
+                                    {% elif loan.status == 'completed' %}bg-secondary
+                                    {% else %}bg-danger{% endif %}">
+                                    {{ loan.get_status_display }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <h6 class="text-muted mb-2">{% trans "Amount" %}</h6>
+                            <p class="mb-0 fw-bold">{{ loan.amount }} {{ loan.currency.code }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">{% trans "Currency" %}</h6>
+                            <p class="mb-0 fw-bold">{{ loan.currency.code }} ({{ loan.currency.name }})</p>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <h6 class="text-muted mb-2">{% trans "Duration" %}</h6>
+                            <p class="mb-0 fw-bold">{{ loan.duration }} {% trans "months" %}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">{% trans "Monthly Payment" %}</h6>
+                            <p class="mb-0 fw-bold">{{ loan.monthly_payment }} {{ loan.currency.code }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <h6 class="text-muted mb-2">{% trans "Interest Rate" %}</h6>
+                            <p class="mb-0 fw-bold">{{ loan.interest_rate }}%</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">{% trans "Total Interest" %}</h6>
+                            <p class="mb-0 fw-bold">{{ loan.total_interest }} {{ loan.currency.code }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <h6 class="text-muted mb-2">{% trans "Start Date" %}</h6>
+                            <p class="mb-0 fw-bold">{{ loan.start_date|date:"F d, Y"|default:"Not started yet" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">{% trans "End Date" %}</h6>
+                            <p class="mb-0 fw-bold">{{ loan.end_date|date:"F d, Y"|default:"Not determined yet" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if loan.status == 'active' or loan.status == 'completed' %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">{% trans "Payment Schedule" %}</h5>
+                </div>
+                <div class="card-body">
+                    {% if loan.payments.all %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>{% trans "Due Date" %}</th>
+                                        <th>{% trans "Amount" %}</th>
+                                        <th>{% trans "Principal" %}</th>
+                                        <th>{% trans "Interest" %}</th>
+                                        <th>{% trans "Status" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for payment in loan.payments.all %}
+                                        <tr class="{% if payment.is_paid %}table-success{% elif payment.is_overdue %}table-danger{% endif %}">
+                                            <td>{{ payment.payment_number }}</td>
+                                            <td>{{ payment.due_date|date:"M d, Y" }}</td>
+                                            <td>{{ payment.amount }} {{ loan.currency.code }}</td>
+                                            <td>{{ payment.principal_amount }} {{ loan.currency.code }}</td>
+                                            <td>{{ payment.interest_amount }} {{ loan.currency.code }}</td>
+                                            <td>
+                                                <span class="badge {% if payment.is_paid %}bg-success{% elif payment.is_overdue %}bg-danger{% else %}bg-warning{% endif %}">
+                                                    {% if payment.is_paid %}{% trans "Paid" %}{% elif payment.is_overdue %}{% trans "Overdue" %}{% else %}{% trans "Pending" %}{% endif %}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center my-3">{% trans "No payment schedule available yet." %}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if loan.status == 'pending' or loan.status == 'rejected' %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">{% trans "Loan Purpose" %}</h5>
+                </div>
+                <div class="card-body">
+                    <p>{{ loan.purpose|linebreaks|default:"No purpose provided." }}</p>
+                    
+                    {% if loan.status == 'rejected' and loan.rejection_reason %}
+                        <div class="alert alert-danger mt-3">
+                            <h6 class="alert-heading">{% trans "Rejection Reason" %}</h6>
+                            <p class="mb-0">{{ loan.rejection_reason }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">{% trans "Summary" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <h6 class="text-muted mb-0">{% trans "Loan Amount" %}</h6>
+                        <p class="mb-0 fw-bold">{{ loan.amount }} {{ loan.currency.code }}</p>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mb-3">
+                        <h6 class="text-muted mb-0">{% trans "Total Interest" %}</h6>
+                        <p class="mb-0 fw-bold">{{ loan.total_interest }} {{ loan.currency.code }}</p>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mb-3">
+                        <h6 class="text-muted mb-0">{% trans "Total to Repay" %}</h6>
+                        <p class="mb-0 fw-bold">{{ loan.total_repayment }} {{ loan.currency.code }}</p>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between mb-3">
+                        <h6 class="text-muted mb-0">{% trans "Already Paid" %}</h6>
+                        <p class="mb-0 fw-bold">{{ loan.paid_amount }} {{ loan.currency.code }}</p>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <h6 class="text-muted mb-0">{% trans "Remaining" %}</h6>
+                        <p class="mb-0 fw-bold fs-5">{{ loan.remaining_amount }} {{ loan.currency.code }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            {% if loan.status == 'active' %}
+            <div class="card border-0 shadow-sm mb-4 bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Loan Progress" %}</h5>
+                    <div class="progress mb-3" style="height: 20px;">
+                        {% with paid_percentage=loan.paid_percentage %}
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ paid_percentage }}%;" 
+                            aria-valuenow="{{ paid_percentage }}" aria-valuemin="0" aria-valuemax="100">
+                            {{ paid_percentage }}%
+                        </div>
+                        {% endwith %}
+                    </div>
+                    <p class="card-text text-muted">
+                        {% trans "You have completed" %} {{ loan.completed_payments }} {% trans "out of" %} {{ loan.duration }} {% trans "payments" %}.
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

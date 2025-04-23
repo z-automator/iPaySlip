@@ -13,6 +13,7 @@ urlpatterns = [
     path('api/leaves/', include('leaves.urls')),
     path('user-management/', include('user_management.urls')),
     path('portal/', include('portal.urls')),
+    path('my/', include('employee_portal.urls')),  # Employee portal URLs
 ]
 
 # Serve media files in development

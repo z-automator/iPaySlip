@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load django_bootstrap5 %}
+
+{% block title %}{% trans "My Payroll History" %} | iPaySlip{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">{% trans "My Payroll History" %}</h1>
+        <a href="{% url 'employee_dashboard' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> {% trans "Back to Dashboard" %}
+        </a>
+    </div>
+    
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            {% if payrolls %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>{% trans "Period" %}</th>
+                                <th>{% trans "Payment Date" %}</th>
+                                <th>{% trans "Gross Salary" %}</th>
+                                <th>{% trans "Deductions" %}</th>
+                                <th>{% trans "Net Salary" %}</th>
+                                <th>{% trans "Actions" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payroll in payrolls %}
+                                <tr>
+                                    <td>{{ payroll.period.name }}</td>
+                                    <td>{{ payroll.period.payment_date|date:"M d, Y" }}</td>
+                                    <td>{{ payroll.gross_salary }} {{ payroll.currency.code }}</td>
+                                    <td>{{ payroll.total_deductions }} {{ payroll.currency.code }}</td>
+                                    <td class="fw-bold">{{ payroll.net_salary }} {{ payroll.currency.code }}</td>
+                                    <td>
+                                        <a href="{% url 'employee_payroll_detail' payroll.id %}" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-eye me-1"></i> {% trans "View" %}
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% bootstrap_pagination payrolls %}
+                
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-file-earmark-x text-muted" style="font-size: 3rem;"></i>
+                    <p class="mt-3 text-muted">{% trans "No payroll records found." %}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load django_bootstrap5 %}
+
+{% block title %}{% trans "Leave Request Details" %} | iPaySlip{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">{% trans "Leave Request Details" %}</h1>
+        <a href="{% url 'employee_leave_request_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> {% trans "Back to Leave Requests" %}
+        </a>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">{% trans "Leave Information" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <h6 class="text-muted mb-2">{% trans "Leave Type" %}</h6>
+                            <p class="mb-0 fw-bold">{{ leave_request.get_leave_type_display }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">{% trans "Status" %}</h6>
+                            <p class="mb-0">
+                                <span class="badge 
+                                    {% if leave_request.status == 'pending' %}bg-warning
+                                    {% elif leave_request.status == 'approved' %}bg-success
+                                    {% elif leave_request.status == 'taken' %}bg-info
+                                    {% else %}bg-danger{% endif %}">
+                                    {{ leave_request.get_status_display }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <h6 class="text-muted mb-2">{% trans "Start Date" %}</h6>
+                            <p class="mb-0 fw-bold">{{ leave_request.start_date|date:"F d, Y" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">{% trans "End Date" %}</h6>
+                            <p class="mb-0 fw-bold">{{ leave_request.end_date|date:"F d, Y" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <h6 class="text-muted mb-2">{% trans "Duration" %}</h6>
+                            <p class="mb-0 fw-bold">{{ leave_request.duration }} {% trans "days" %}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">{% trans "Request Date" %}</h6>
+                            <p class="mb-0 fw-bold">{{ leave_request.created_at|date:"F d, Y" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-2">{% trans "Reason" %}</h6>
+                        <p class="mb-0">{{ leave_request.reason|linebreaks|default:"No reason provided." }}</p>
+                    </div>
+                    
+                    {% if leave_request.status == 'rejected' and leave_request.rejection_reason %}
+                        <div class="alert alert-danger mt-4">
+                            <h6 class="alert-heading">{% trans "Rejection Reason" %}</h6>
+                            <p class="mb-0">{{ leave_request.rejection_reason }}</p>
+                        </div>
+                    {% endif %}
+                    
+                    {% if leave_request.status == 'approved' and leave_request.approval_notes %}
+                        <div class="alert alert-success mt-4">
+                            <h6 class="alert-heading">{% trans "Approval Notes" %}</h6>
+                            <p class="mb-0">{{ leave_request.approval_notes }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">{% trans "Leave Type Details" %}</h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="mb-3">{{ leave_request.get_leave_type_display }}</h6>
+                    <p class="text-muted mb-3">{{ leave_request.get_leave_type_display }}</p>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">{% trans "Max Days Per Year" %}:</span>
+                        <span class="fw-bold">N/A</span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">{% trans "Requires Approval" %}:</span>
+                        <span class="fw-bold">{% trans "Yes" %}</span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">{% trans "Paid Leave" %}:</span>
+                        <span class="fw-bold">{% trans "Yes" %}</span>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">{% trans "Your Balance" %}:</span>
+                        <span class="fw-bold">N/A</span>
+                    </div>
+                </div>
+            </div>
+            
+            {% if leave_request.status == 'pending' %}
+                <div class="card border-0 shadow-sm mb-4 bg-light">
+                    <div class="card-body">
+                        <h5 class="card-title">{% trans "Request Status" %}</h5>
+                        <p class="card-text text-muted">
+                            {% trans "Your leave request is currently pending approval. You will be notified once a decision has been made." %}
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -89,13 +89,23 @@ class EmployeeCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView
             user_id = self.request.POST.get('user')
             first_name = self.request.POST.get('first_name', '')
             last_name = self.request.POST.get('last_name', '')
+            email = self.request.POST.get('email', '')
             
             if user_id:
                 employee.user = User.objects.get(id=user_id)
+                # Update the user's email if it has changed
+                if employee.user.email != email:
+                    employee.user.email = email
+                    employee.user.save()
             else:
-                # Create a placeholder user based on employee information
-                username = f"emp_{employee.employee_id}"
-                email = f"{username}@example.com"
+                # Create a user based on employee information
+                username = email.split('@')[0]
+                # Check if username exists, if so append a random string
+                if User.objects.filter(username=username).exists():
+                    import random, string
+                    random_suffix = ''.join(random.choices(string.digits, k=4))
+                    username = f"{username}_{random_suffix}"
+                
                 # Generate a random password
                 import random, string
                 password = ''.join(random.choices(string.ascii_letters + string.digits, k=12))
@@ -108,6 +118,37 @@ class EmployeeCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView
                     last_name=last_name
                 )
                 employee.user = user
+                
+                # Send email with login credentials
+                from django.core.mail import send_mail
+                from django.conf import settings
+                
+                subject = f"Your {settings.COMPANY_NAME} Account Details"
+                message = f"""
+Hello {first_name} {last_name},
+
+Your account has been created in the {settings.COMPANY_NAME} payroll system.
+
+Username: {username}
+Password: {password}
+
+Please login at {settings.COMPANY_WEBSITE}/accounts/login/ and change your password.
+
+Regards,
+{settings.COMPANY_NAME} HR Team
+                """
+                
+                try:
+                    send_mail(
+                        subject,
+                        message,
+                        settings.DEFAULT_FROM_EMAIL,
+                        [email],
+                        fail_silently=False,
+                    )
+                    messages.success(self.request, f"Login credentials have been sent to {email}")
+                except Exception as e:
+                    messages.warning(self.request, f"Could not send email: {str(e)}")
             
             employee.save()
             messages.success(self.request, "Employee created successfully.")
@@ -137,19 +178,31 @@ class EmployeeUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView
             user_id = self.request.POST.get('user')
             first_name = self.request.POST.get('first_name', '')
             last_name = self.request.POST.get('last_name', '')
+            email = self.request.POST.get('email', '')
             
             if user_id:
                 # Link to selected user
                 employee.user = User.objects.get(id=user_id)
+                # Update the user's email if it has changed
+                if employee.user.email != email:
+                    employee.user.email = email
+                    employee.user.save()
             elif employee.user:
-                # Update existing user's name
+                # Update existing user's name and email
                 employee.user.first_name = first_name
                 employee.user.last_name = last_name
+                if employee.user.email != email:
+                    employee.user.email = email
                 employee.user.save()
             else:
                 # Create a new user
-                username = f"emp_{employee.employee_id}"
-                email = f"{username}@example.com"
+                username = email.split('@')[0]
+                # Check if username exists, if so append a random string
+                if User.objects.filter(username=username).exists():
+                    import random, string
+                    random_suffix = ''.join(random.choices(string.digits, k=4))
+                    username = f"{username}_{random_suffix}"
+                
                 # Generate a random password
                 import random, string
                 password = ''.join(random.choices(string.ascii_letters + string.digits, k=12))
@@ -162,6 +215,37 @@ class EmployeeUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView
                     last_name=last_name
                 )
                 employee.user = user
+                
+                # Send email with login credentials
+                from django.core.mail import send_mail
+                from django.conf import settings
+                
+                subject = f"Your {settings.COMPANY_NAME} Account Details"
+                message = f"""
+Hello {first_name} {last_name},
+
+Your account has been created in the {settings.COMPANY_NAME} payroll system.
+
+Username: {username}
+Password: {password}
+
+Please login at {settings.COMPANY_WEBSITE}/accounts/login/ and change your password.
+
+Regards,
+{settings.COMPANY_NAME} HR Team
+                """
+                
+                try:
+                    send_mail(
+                        subject,
+                        message,
+                        settings.DEFAULT_FROM_EMAIL,
+                        [email],
+                        fail_silently=False,
+                    )
+                    messages.success(self.request, f"Login credentials have been sent to {email}")
+                except Exception as e:
+                    messages.warning(self.request, f"Could not send email: {str(e)}")
             
             employee.save()
             messages.success(self.request, "Employee updated successfully.")

@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load django_bootstrap5 %}
+
+{% block title %}{% trans "Employee Dashboard" %} | iPaySlip{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h1 class="h3 mb-3">{% trans "Welcome" %}, {{ employee.full_name }}</h1>
+                    <p class="text-muted">{% trans "Employee ID" %}: {{ employee.employee_id }}</p>
+                    <p class="text-muted">{% trans "Department" %}: {{ employee.department|default:"Not assigned" }}</p>
+                    <p class="text-muted">{% trans "Position" %}: {{ employee.position|default:"Not assigned" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-4 mb-4 mb-md-0">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">{% trans "Recent Payrolls" %}</h5>
+                        <a href="{% url 'employee_payroll_list' %}" class="btn btn-sm btn-light">{% trans "View All" %}</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if recent_payrolls %}
+                        <div class="list-group list-group-flush">
+                            {% for payroll in recent_payrolls %}
+                                <a href="{% url 'employee_payroll_detail' payroll.id %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ payroll.period.name }}</h6>
+                                        <small>{{ payroll.period.payment_date|date:"M d, Y" }}</small>
+                                    </div>
+                                    <p class="mb-1">{% trans "Net Salary" %}: {{ payroll.net_salary }} {{ payroll.currency.code }}</p>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center my-3">{% trans "No payroll records found." %}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4 mb-md-0">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-success text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">{% trans "Active Loans" %}</h5>
+                        <a href="{% url 'employee_loan_list' %}" class="btn btn-sm btn-light">{% trans "View All" %}</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if active_loans %}
+                        <div class="list-group list-group-flush">
+                            {% for loan in active_loans %}
+                                <a href="{% url 'employee_loan_detail' loan.id %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{% trans "Loan" %} #{{ loan.id }}</h6>
+                                        <small>{{ loan.request_date|date:"M d, Y" }}</small>
+                                    </div>
+                                    <p class="mb-1">{% trans "Amount" %}: {{ loan.amount }} {{ loan.currency.code }}</p>
+                                    <small>{% trans "Remaining" %}: {{ loan.remaining_amount }} {{ loan.currency.code }}</small>
+                                </a>
+                            {% endfor %}
+                        </div>
+                        <div class="mt-3">
+                            <a href="{% url 'employee_loan_request' %}" class="btn btn-outline-success btn-sm w-100">
+                                <i class="bi bi-plus-circle me-1"></i> {% trans "Request New Loan" %}
+                            </a>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center my-3">{% trans "No active loans." %}</p>
+                        <div class="mt-3">
+                            <a href="{% url 'employee_loan_request' %}" class="btn btn-outline-success btn-sm w-100">
+                                <i class="bi bi-plus-circle me-1"></i> {% trans "Request New Loan" %}
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-info text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">{% trans "Leave Requests" %}</h5>
+                        <a href="{% url 'employee_leave_request_list' %}" class="btn btn-sm btn-light">{% trans "View All" %}</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if recent_leave_requests %}
+                        <div class="list-group list-group-flush">
+                            {% for leave in recent_leave_requests %}
+                                <a href="{% url 'employee_leave_request_detail' leave.id %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ leave.get_leave_type_display }}</h6>
+                                        <small class="
+                                            {% if leave.status == 'approved' %}text-success{% endif %}
+                                            {% if leave.status == 'pending' %}text-warning{% endif %}
+                                            {% if leave.status == 'rejected' %}text-danger{% endif %}
+                                        ">
+                                            {{ leave.get_status_display }}
+                                        </small>
+                                    </div>
+                                    <p class="mb-1">{{ leave.start_date|date:"M d" }} - {{ leave.end_date|date:"M d, Y" }}</p>
+                                </a>
+                            {% endfor %}
+                        </div>
+                        <div class="mt-3">
+                            <a href="{% url 'employee_leave_request_create' %}" class="btn btn-outline-info btn-sm w-100">
+                                <i class="bi bi-plus-circle me-1"></i> {% trans "Request Leave" %}
+                            </a>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center my-3">{% trans "No leave requests found." %}</p>
+                        <div class="mt-3">
+                            <a href="{% url 'employee_leave_request_create' %}" class="btn btn-outline-info btn-sm w-100">
+                                <i class="bi bi-plus-circle me-1"></i> {% trans "Request Leave" %}
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

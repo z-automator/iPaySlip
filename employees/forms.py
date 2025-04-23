@@ -15,6 +15,11 @@ class EmployeeForm(forms.ModelForm):
     # Add first name and last name fields that aren't part of the Employee model
     first_name = forms.CharField(max_length=30, required=True)
     last_name = forms.CharField(max_length=30, required=True)
+    email = forms.EmailField(
+        max_length=254, 
+        required=True,
+        help_text="Employee's email address for system access"
+    )
     user = forms.ModelChoiceField(
         queryset=User.objects.all(),
         required=False,
@@ -71,10 +76,11 @@ class EmployeeForm(forms.ModelForm):
             except Currency.DoesNotExist:
                 pass
         
-        # If this is an existing employee, populate the first_name and last_name fields
+        # If this is an existing employee, populate the first_name, last_name, and email fields
         if self.instance and self.instance.pk and self.instance.user:
             self.fields['first_name'].initial = self.instance.user.first_name
             self.fields['last_name'].initial = self.instance.user.last_name
+            self.fields['email'].initial = self.instance.user.email
             # Set the initial value of is_active from the instance
             self.fields['is_active'].initial = self.instance.is_active
     
@@ -84,6 +90,7 @@ class EmployeeForm(forms.ModelForm):
         base_salary = cleaned_data.get('base_salary')
         hourly_rate = cleaned_data.get('hourly_rate')
         salary_currency = cleaned_data.get('salary_currency')
+        email = cleaned_data.get('email')
         
         if not salary_currency:
             self.add_error('salary_currency', 'Please select a currency')
@@ -93,4 +100,12 @@ class EmployeeForm(forms.ModelForm):
         elif salary_type == 'hourly' and not hourly_rate:
             self.add_error('hourly_rate', 'Hourly rate is required for hourly rate type')
         
-        return cleaned_data 
+        # Check if email is unique among users (except for the current user if editing)
+        if email:
+            user_with_email = User.objects.filter(email=email)
+            if self.instance and self.instance.pk and self.instance.user:
+                user_with_email = user_with_email.exclude(pk=self.instance.user.pk)
+            if user_with_email.exists():
+                self.add_error('email', 'This email is already in use by another user')
+        
+        return cleaned_data

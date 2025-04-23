@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load django_bootstrap5 %}
+
+{% block title %}{% trans "My Leave Requests" %} | iPaySlip{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">{% trans "My Leave Requests" %}</h1>
+        <div>
+            <a href="{% url 'employee_leave_request_create' %}" class="btn btn-primary me-2">
+                <i class="bi bi-plus-circle me-1"></i> {% trans "Request Leave" %}
+            </a>
+            <a href="{% url 'employee_dashboard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> {% trans "Back to Dashboard" %}
+            </a>
+        </div>
+    </div>
+    
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            {% if leave_requests %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>{% trans "Leave Type" %}</th>
+                                <th>{% trans "Start Date" %}</th>
+                                <th>{% trans "End Date" %}</th>
+                                <th>{% trans "Duration" %}</th>
+                                <th>{% trans "Status" %}</th>
+                                <th>{% trans "Actions" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for leave in leave_requests %}
+                                <tr>
+                                    <td>{{ leave.get_leave_type_display }}</td>
+                                    <td>{{ leave.start_date|date:"M d, Y" }}</td>
+                                    <td>{{ leave.end_date|date:"M d, Y" }}</td>
+                                    <td>{{ leave.duration }} {% trans "days" %}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if leave.status == 'pending' %}bg-warning
+                                            {% elif leave.status == 'approved' %}bg-success
+                                            {% elif leave.status == 'taken' %}bg-info
+                                            {% else %}bg-danger{% endif %}">
+                                            {{ leave.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'employee_leave_request_detail' leave.id %}" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-eye me-1"></i> {% trans "View" %}
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% bootstrap_pagination leave_requests %}
+                
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-calendar-x text-muted" style="font-size: 3rem;"></i>
+                    <p class="mt-3 text-muted">{% trans "You don't have any leave requests yet." %}</p>
+                    <a href="{% url 'employee_leave_request_create' %}" class="btn btn-primary mt-2">
+                        <i class="bi bi-plus-circle me-1"></i> {% trans "Request Leave" %}
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">{% trans "Available Leave Types" %}</h5>
+                </div>
+                <div class="card-body">
+                    {% if leave_types %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>{% trans "Leave Type" %}</th>
+                                        <th>{% trans "Description" %}</th>
+                                        <th>{% trans "Max Days" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for leave_type in leave_types %}
+                                        <tr>
+                                            <td>{{ leave_type.name }}</td>
+                                            <td>{{ leave_type.description }}</td>
+                                            <td>{{ leave_type.max_days_per_year }} {% trans "days/year" %}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center my-3">{% trans "No leave types available." %}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">{% trans "Leave Balance" %}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">{% trans "Your current leave balance for this year:" %}</p>
+                    
+                    {% if leave_types %}
+                        <div class="list-group list-group-flush">
+                            {% for leave_type in leave_types %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">{{ leave_type.name }}</h6>
+                                        <span class="badge bg-primary">
+                                            N/A
+                                        </span>
+                                    </div>
+                                    <div class="progress mt-2" style="height: 10px;">
+                                        <div class="progress-bar" role="progressbar" style="width: 50%;" 
+                                            aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center my-3">{% trans "No leave balance information available." %}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

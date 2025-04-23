@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'leaves',  # Add the new leaves app
     'user_management',  # Add the new user management app
     'portal',  # Add the new portal app
+    'employee_portal',  # Add the new employee portal app
 ]
 
 MIDDLEWARE = [
