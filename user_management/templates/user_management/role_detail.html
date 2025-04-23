@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}Role: {{ role.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Role Details</h1>
+        <div>
+            <a href="{% url 'role_update' role.id %}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Edit Role
+            </a>
+            <a href="{% url 'role_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Roles
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-5">
+            <!-- Role Information -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Role Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h3 class="mb-0">{{ role.name }}</h3>
+                        {% if role.is_admin_role %}
+                        <span class="badge bg-primary">Admin Role</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Regular Role</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-2">Description</h6>
+                        <p>{{ role.description|default:"No description provided." }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-2">Created</h6>
+                        <p>{{ role.created_at|date:"F j, Y, g:i a" }}</p>
+                    </div>
+
+                    <div>
+                        <h6 class="text-muted mb-2">Last Updated</h6>
+                        <p>{{ role.updated_at|date:"F j, Y, g:i a" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <!-- Role Permissions -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Permissions ({{ role.permissions.count }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if role.permissions.exists %}
+                    <div class="row">
+                        {% for permission in role.permissions.all %}
+                        <div class="col-md-6 mb-2">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>{{ permission.name }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No permissions assigned to this role.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Users with this Role -->
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Users with this Role ({{ users.count }})</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user_obj in users %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'user_detail' user_obj.id %}">{{ user_obj.username }}</a>
+                                    </td>
+                                    <td>{{ user_obj.get_full_name|default:"-" }}</td>
+                                    <td>{{ user_obj.email|default:"-" }}</td>
+                                    <td>
+                                        {% if user_obj.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-4">
+                                        <p class="text-muted mb-0">No users have been assigned this role.</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

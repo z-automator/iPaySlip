@@ -80,6 +80,9 @@
                                     <i class="bi bi-person-circle"></i> {{ user.email }}
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                    {% if user.is_superuser %}
+                                        <li><a class="dropdown-item" href="{% url 'portal_dashboard' %}">Admin Portal</a></li>
+                                    {% endif %}
                                     {% if user.is_staff %}
                                         <li><a class="dropdown-item" href="{% url 'admin:index' %}">Admin</a></li>
                                     {% endif %}

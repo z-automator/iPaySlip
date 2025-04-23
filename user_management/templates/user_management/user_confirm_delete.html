@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete User{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h2 class="mb-0">Delete User</h2>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Warning:</strong> This action cannot be undone. All data associated with this user will be permanently deleted.
+                    </div>
+                    
+                    <p class="mb-4">Are you sure you want to delete the user <strong>"{{ user_obj.username }}"</strong>?</p>
+                    
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">User Information</h5>
+                            <ul class="list-unstyled">
+                                <li><strong>Username:</strong> {{ user_obj.username }}</li>
+                                <li><strong>Full Name:</strong> {{ user_obj.get_full_name|default:"Not provided" }}</li>
+                                <li><strong>Email:</strong> {{ user_obj.email|default:"Not provided" }}</li>
+                                <li><strong>Role:</strong> {% if user_obj.profile.role %}{{ user_obj.profile.role.name }}{% else %}No role assigned{% endif %}</li>
+                                <li><strong>Status:</strong> {% if user_obj.is_active %}Active{% else %}Inactive{% endif %}</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'user_detail' user_obj.id %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Delete User
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

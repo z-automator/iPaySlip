@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}User: {{ user_obj.username }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>User Details</h1>
+        <div>
+            <a href="{% url 'user_update' user_obj.id %}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Edit User
+            </a>
+            <a href="{% url 'user_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Users
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-5">
+            <!-- User Information -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">User Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h3 class="mb-0">{{ user_obj.username }}</h3>
+                        {% if user_obj.is_active %}
+                        <span class="badge bg-success">Active</span>
+                        {% else %}
+                        <span class="badge bg-danger">Inactive</span>
+                        {% endif %}
+                        
+                        {% if user_obj.is_superuser %}
+                        <span class="badge bg-warning text-dark">Superuser</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-2">Full Name</h6>
+                        <p>{{ user_obj.get_full_name|default:"Not provided" }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-2">Email</h6>
+                        <p>{{ user_obj.email|default:"Not provided" }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-2">Role</h6>
+                        {% if user_obj.profile.role %}
+                            <p>
+                                <a href="{% url 'role_detail' user_obj.profile.role.id %}">
+                                    {{ user_obj.profile.role.name }}
+                                </a>
+                                {% if user_obj.profile.role.is_admin_role %}
+                                <span class="badge bg-primary">Admin</span>
+                                {% endif %}
+                            </p>
+                        {% else %}
+                            <p class="text-muted">No role assigned</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-2">Date Joined</h6>
+                        <p>{{ user_obj.date_joined|date:"F j, Y, g:i a" }}</p>
+                    </div>
+
+                    <div>
+                        <h6 class="text-muted mb-2">Last Login</h6>
+                        <p>{{ user_obj.last_login|date:"F j, Y, g:i a"|default:"Never logged in" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <!-- User Permissions -->
+            <div class="card mb-4">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Direct Permissions ({{ direct_permissions.count }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if direct_permissions.exists %}
+                    <div class="row">
+                        {% for permission in direct_permissions %}
+                        <div class="col-md-6 mb-2">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>{{ permission.name }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No direct permissions assigned to this user.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Role Permissions -->
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Role Permissions ({{ role_permissions.count }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if role_permissions.exists %}
+                    <div class="row">
+                        {% for permission in role_permissions %}
+                        <div class="col-md-6 mb-2">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>{{ permission.name }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No role permissions available for this user.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

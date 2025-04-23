@@ -49,6 +49,9 @@ INSTALLED_APPS = [
     'employees',
     'payroll',
     'lending',
+    'leaves',  # Add the new leaves app
+    'user_management',  # Add the new user management app
+    'portal',  # Add the new portal app
 ]
 
 MIDDLEWARE = [
@@ -91,7 +94,7 @@ DATABASE_URL = env('DATABASE_URL', default=None)
 if DATABASE_URL:
     # Use DATABASE_URL if it exists
     DATABASES = {
-        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
+        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=False)
     }
 else:
     # Fallback to individual settings
@@ -103,7 +106,7 @@ else:
             'PASSWORD': env('DATABASE_PASSWORD', default=''),
             'HOST': env('DATABASE_HOST', default='localhost'),
             'PORT': env('DATABASE_PORT', default='5432'),
-            'OPTIONS': {'sslmode': env('DATABASE_SSL_MODE', default='require')},
+            'OPTIONS': {'sslmode': env('DATABASE_SSL_MODE', default='prefer')},
         }
     }
 

@@ -10,9 +10,12 @@ urlpatterns = [
     path('payroll/', include('payroll.urls')),
     path('loans/', include('lending.urls')),
     path('accounts/', include('allauth.urls')),
+    path('api/leaves/', include('leaves.urls')),
+    path('user-management/', include('user_management.urls')),
+    path('portal/', include('portal.urls')),
 ]
 
 # Serve media files in development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) 
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

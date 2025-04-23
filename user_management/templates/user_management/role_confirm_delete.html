@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Role{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h2 class="mb-0">Delete Role</h2>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Warning:</strong> This action cannot be undone. Users with this role will lose their role assignment.
+                    </div>
+                    
+                    <p class="mb-4">Are you sure you want to delete the role <strong>"{{ role.name }}"</strong>?</p>
+                    
+                    {% if role.userprofile_set.exists %}
+                    <div class="alert alert-danger">
+                        <p class="mb-1"><strong>This role is currently assigned to {{ role.userprofile_set.count }} user(s):</strong></p>
+                        <ul class="mb-0">
+                            {% for profile in role.userprofile_set.all %}
+                            <li>{{ profile.user.username }} ({{ profile.user.get_full_name|default:profile.user.username }})</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'role_detail' role.id %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Delete Role
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
