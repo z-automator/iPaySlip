@@ -6,6 +6,8 @@ from django.db.models import Count, Sum
 from django.urls import reverse_lazy
 from django.utils import timezone
 from datetime import timedelta
+from django.http import HttpResponseForbidden
+from django.contrib import messages
 
 from employees.models import Employee, Department
 from payroll.models import Payroll, PayrollPeriod
@@ -22,8 +24,9 @@ class SuperuserRequiredMixin(UserPassesTestMixin):
         return self.request.user.is_superuser
     
     def handle_no_permission(self):
-        return redirect('home')  # Redirect to home page if not superuser
-
+        messages.error(self.request, "You don't have permission to access this page.")
+        return HttpResponseForbidden("You don't have permission to access this page.")
+    
 @login_required
 @user_passes_test(is_superuser)
 def portal_dashboard(request):

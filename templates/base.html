@@ -50,26 +50,48 @@
                     <ul class="navbar-nav me-auto">
                         {% if user.is_authenticated %}
                             <li class="nav-item">
-                                <a class="nav-link {% if request.path == '/dashboard/' %}active{% endif %}" href="{% url 'dashboard' %}">Dashboard</a>
+                                <a class="nav-link {% if request.path == '/my/' %}active{% endif %}" href="{% url 'employee_dashboard' %}">Dashboard</a>
+                            </li>
+                            
+                            {% if user.is_superuser %}
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle {% if 'employees' in request.path %}active{% endif %}" href="#" id="employeeDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Employees
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="employeeDropdown">
+                                        <li><a class="dropdown-item" href="{% url 'employee_list' %}">All Employees</a></li>
+                                        <li><a class="dropdown-item" href="{% url 'employee_create' %}">Add New Employee</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="{% url 'department_list' %}">Departments</a></li>
+                                    </ul>
+                                </li>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle {% if 'payroll' in request.path and not 'my/payrolls' in request.path %}active{% endif %}" href="#" id="payrollDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Payroll
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="payrollDropdown">
+                                        <li><a class="dropdown-item" href="{% url 'payroll_list' %}">Payroll List</a></li>
+                                        <li><a class="dropdown-item" href="{% url 'process_payroll' %}">Process Payroll</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="{% url 'period_list' %}">Payroll Periods</a></li>
+                                        <li><a class="dropdown-item" href="{% url 'item_list' %}">Standard Items</a></li>
+                                        <li><a class="dropdown-item" href="{% url 'tax_tier_list' %}">Tax Tiers</a></li>
+                                    </ul>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {% if 'loans' in request.path and not 'my/loans' in request.path %}active{% endif %}" href="{% url 'loan_list' %}">Loans</a>
+                                </li>
+                            {% endif %}
+                            
+                            <!-- Employee-specific navigation items - visible to all users -->
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'my/payrolls' in request.path %}active{% endif %}" href="{% url 'employee_payroll_list' %}">My Payrolls</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link {% if 'employees' in request.path %}active{% endif %}" href="{% url 'employee_list' %}">Employees</a>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle {% if 'payroll' in request.path %}active{% endif %}" href="#" id="payrollDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    Payroll
-                                </a>
-                                <ul class="dropdown-menu" aria-labelledby="payrollDropdown">
-                                    <li><a class="dropdown-item" href="{% url 'payroll_list' %}">Payroll List</a></li>
-                                    <li><a class="dropdown-item" href="{% url 'process_payroll' %}">Process Payroll</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{% url 'period_list' %}">Payroll Periods</a></li>
-                                    <li><a class="dropdown-item" href="{% url 'item_list' %}">Standard Items</a></li>
-                                    <li><a class="dropdown-item" href="{% url 'tax_tier_list' %}">Tax Tiers</a></li>
-                                </ul>
+                                <a class="nav-link {% if 'my/loans' in request.path %}active{% endif %}" href="{% url 'employee_loan_list' %}">My Loans</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link {% if 'loans' in request.path %}active{% endif %}" href="{% url 'loan_list' %}">Loans</a>
+                                <a class="nav-link {% if 'my/leaves' in request.path %}active{% endif %}" href="{% url 'employee_leave_request_list' %}">My Leave Requests</a>
                             </li>
                         {% endif %}
                     </ul>
@@ -165,4 +187,4 @@
         });
     </script>
 </body>
-</html> 
+</html>

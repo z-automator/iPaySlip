@@ -35,6 +35,15 @@ class LoanListView(LoginRequiredMixin, ListView):
     
     def get_queryset(self):
         queryset = super().get_queryset()
+        
+        # Regular employees can only see their own loans
+        if not self.request.user.is_superuser:
+            try:
+                employee = Employee.objects.get(user=self.request.user)
+                queryset = queryset.filter(employee=employee)
+            except Employee.DoesNotExist:
+                return Loan.objects.none()
+                
         search_query = self.request.GET.get('search', '')
         status = self.request.GET.get('status', '')
         
@@ -80,6 +89,18 @@ class LoanDetailView(LoginRequiredMixin, DetailView):
     model = Loan
     template_name = LOAN_DETAIL_TEMPLATE
     context_object_name = 'loan'
+    
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
+        # Regular employees can only view their own loans
+        if not self.request.user.is_superuser:
+            try:
+                employee = Employee.objects.get(user=self.request.user)
+                if obj.employee != employee:
+                    raise Http404("You don't have permission to view this loan.")
+            except Employee.DoesNotExist:
+                raise Http404("Employee profile not found.")
+        return obj
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

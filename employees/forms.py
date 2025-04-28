@@ -8,8 +8,14 @@ class DepartmentForm(forms.ModelForm):
         model = Department
         fields = ['name', 'description']
         widgets = {
-            'description': forms.Textarea(attrs={'rows': 3}),
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
         }
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add required indicator and help text
+        self.fields['name'].help_text = "Department name (e.g., HR, Finance, IT)"
         
 class EmployeeForm(forms.ModelForm):
     # Add first name and last name fields that aren't part of the Employee model
@@ -17,8 +23,8 @@ class EmployeeForm(forms.ModelForm):
     last_name = forms.CharField(max_length=30, required=True)
     email = forms.EmailField(
         max_length=254, 
-        required=True,
-        help_text="Employee's email address for system access"
+        required=False,  
+        help_text="Employee's email address for system access (required if not linking to existing user)"
     )
     user = forms.ModelChoiceField(
         queryset=User.objects.all(),
@@ -83,6 +89,17 @@ class EmployeeForm(forms.ModelForm):
             self.fields['email'].initial = self.instance.user.email
             # Set the initial value of is_active from the instance
             self.fields['is_active'].initial = self.instance.is_active
+            
+        # Add Bootstrap classes to all fields
+        for field_name, field in self.fields.items():
+            if field.widget.attrs.get('class'):
+                field.widget.attrs['class'] += ' form-control'
+            else:
+                field.widget.attrs['class'] = 'form-control'
+                
+            # Special case for checkboxes
+            if isinstance(field.widget, forms.CheckboxInput):
+                field.widget.attrs['class'] = 'form-check-input'
     
     def clean(self):
         cleaned_data = super().clean()
@@ -91,6 +108,7 @@ class EmployeeForm(forms.ModelForm):
         hourly_rate = cleaned_data.get('hourly_rate')
         salary_currency = cleaned_data.get('salary_currency')
         email = cleaned_data.get('email')
+        user = cleaned_data.get('user')
         
         if not salary_currency:
             self.add_error('salary_currency', 'Please select a currency')
@@ -100,8 +118,13 @@ class EmployeeForm(forms.ModelForm):
         elif salary_type == 'hourly' and not hourly_rate:
             self.add_error('hourly_rate', 'Hourly rate is required for hourly rate type')
         
+        # Email is required only if not linking to an existing user
+        if not user and not email:
+            self.add_error('email', 'Email is required when not linking to an existing user')
+        
         # Check if email is unique among users (except for the current user if editing)
-        if email:
+        # Only check email uniqueness if we're not linking to an existing user
+        if email and not user:
             user_with_email = User.objects.filter(email=email)
             if self.instance and self.instance.pk and self.instance.user:
                 user_with_email = user_with_email.exclude(pk=self.instance.user.pk)

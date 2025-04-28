@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load django_bootstrap5 %}
 
-{% block title %}{% trans "Employee Dashboard" %} | iPaySlip{% endblock %}
+{% block title %}{% trans "Dashboard" %} | iPaySlip{% endblock %}
 
 {% block content %}
 <div class="container py-4">
@@ -19,6 +19,7 @@
         </div>
     </div>
     
+    <!-- Personal Data Widgets - Visible to All -->
     <div class="row mb-4">
         <div class="col-md-4 mb-4 mb-md-0">
             <div class="card border-0 shadow-sm h-100">
@@ -131,5 +132,110 @@
             </div>
         </div>
     </div>
+    
+    <!-- Manager-Only Widgets -->
+    {% if user.is_superuser %}
+    <div class="row mb-4">
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">{% trans "System Overview" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body text-center">
+                                    <h1 class="display-4">{{ employee_count }}</h1>
+                                    <p class="mb-0">{% trans "Employees" %}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <h1 class="display-4">{{ payroll_count }}</h1>
+                                    <p class="mb-0">{% trans "Payrolls" %}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body text-center">
+                                    <h1 class="display-4">{{ loan_count }}</h1>
+                                    <p class="mb-0">{% trans "Loans" %}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body text-center">
+                                    <h1 class="display-4">{{ leave_count }}</h1>
+                                    <p class="mb-0">{% trans "Leaves" %}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4 mb-md-0">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-warning text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">{% trans "Pending Loan Requests" %}</h5>
+                        <a href="{% url 'loan_list' %}" class="btn btn-sm btn-light">{% trans "View All" %}</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if pending_loans %}
+                        <div class="list-group list-group-flush">
+                            {% for loan in pending_loans %}
+                                <a href="{% url 'loan_detail' loan.id %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ loan.employee.full_name }}</h6>
+                                        <small>{{ loan.request_date|date:"M d, Y" }}</small>
+                                    </div>
+                                    <p class="mb-1">{% trans "Amount" %}: {{ loan.amount }} {{ loan.currency.code }}</p>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center my-3">{% trans "No pending loan requests." %}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-danger text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">{% trans "Pending Leave Requests" %}</h5>
+                        <a href="#" class="btn btn-sm btn-light">{% trans "View All" %}</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if pending_leaves %}
+                        <div class="list-group list-group-flush">
+                            {% for leave in pending_leaves %}
+                                <a href="#" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ leave.employee.get_full_name }}</h6>
+                                        <small>{{ leave.created_at|date:"M d, Y" }}</small>
+                                    </div>
+                                    <p class="mb-1">{{ leave.get_leave_type_display }}: {{ leave.start_date|date:"M d" }} - {{ leave.end_date|date:"M d, Y" }}</p>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center my-3">{% trans "No pending leave requests." %}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

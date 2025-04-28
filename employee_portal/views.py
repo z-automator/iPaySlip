@@ -13,25 +13,26 @@ from lending.models import Loan
 from leaves.models import Leave
 from lending.forms import LoanForm
 from django.http import HttpResponseForbidden
+from user_management.mixins import EmployeeAccessMixin
 
 # Mixin to ensure only employees can access their own data
-class EmployeeAccessMixin(UserPassesTestMixin):
-    """Mixin to ensure users can only access their own employee data"""
+# class EmployeeAccessMixin(UserPassesTestMixin):
+#     """Mixin to ensure users can only access their own employee data"""
     
-    def test_func(self):
-        # Check if the user is authenticated and has an associated employee profile
-        if not self.request.user.is_authenticated:
-            return False
+#     def test_func(self):
+#         # Check if the user is authenticated and has an associated employee profile
+#         if not self.request.user.is_authenticated:
+#             return False
             
-        try:
-            # Get the employee associated with the current user
-            self.employee = Employee.objects.get(user=self.request.user)
-            return True
-        except Employee.DoesNotExist:
-            return False
+#         try:
+#             # Get the employee associated with the current user
+#             self.employee = Employee.objects.get(user=self.request.user)
+#             return True
+#         except Employee.DoesNotExist:
+#             return False
     
-    def handle_no_permission(self):
-        return redirect('home')
+#     def handle_no_permission(self):
+#         return redirect('home')
 
 @login_required
 def employee_dashboard(request):
@@ -55,6 +56,25 @@ def employee_dashboard(request):
             'active_loans': active_loans,
             'recent_leave_requests': recent_leave_requests,
         }
+        
+        # Add manager-only context data
+        if request.user.is_superuser:
+            employee_count = Employee.objects.count()
+            payroll_count = Payroll.objects.count()
+            loan_count = Loan.objects.count()
+            leave_count = Leave.objects.count()
+            
+            pending_loans = Loan.objects.filter(status='pending').order_by('-request_date')[:5]
+            pending_leaves = Leave.objects.filter(status='pending').order_by('-created_at')[:5]
+            
+            context.update({
+                'employee_count': employee_count,
+                'payroll_count': payroll_count,
+                'loan_count': loan_count,
+                'leave_count': leave_count,
+                'pending_loans': pending_loans,
+                'pending_leaves': pending_leaves,
+            })
         
         return render(request, 'employee_portal/dashboard.html', context)
     except Employee.DoesNotExist:

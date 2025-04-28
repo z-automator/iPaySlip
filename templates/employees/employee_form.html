@@ -73,6 +73,18 @@
                                     {% endif %}
                                     <div class="form-text">{{ form.user.help_text }}</div>
                                 </div>
+                                <div class="mb-3" id="email-field-container">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label">Email Address*</label>
+                                    {{ form.email }}
+                                    {% if form.email.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.email.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                    <div class="form-text">{{ form.email.help_text }}</div>
+                                </div>
                             </div>
 
                             <!-- Personal Information Section -->
@@ -306,6 +318,19 @@
                                     }
                                 }
                                 
+                                function toggleEmailField() {
+                                    const userSelect = document.getElementById('{{ form.user.id_for_label }}');
+                                    const emailContainer = document.getElementById('email-field-container');
+                                    
+                                    if (userSelect.value) {
+                                        // User is selected, hide email field
+                                        emailContainer.style.display = 'none';
+                                    } else {
+                                        // No user selected, show email field
+                                        emailContainer.style.display = 'block';
+                                    }
+                                }
+                                
                                 // Initialize fields on page load
                                 document.addEventListener('DOMContentLoaded', function() {
                                     // Set initial salary type display
@@ -327,6 +352,15 @@
                                     
                                     // Initial currency label update
                                     updateCurrencyLabels();
+                                    
+                                    // Set initial email field visibility
+                                    const userSelect = document.getElementById('{{ form.user.id_for_label }}');
+                                    if (userSelect) {
+                                        toggleEmailField();
+                                        
+                                        // Add event listener for user selection changes
+                                        userSelect.addEventListener('change', toggleEmailField);
+                                    }
                                 });
                             </script>
 

@@ -2,15 +2,17 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth import get_user_model
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib import messages
 from django.db.models import Q
-from django.contrib.auth.models import User
+import random
 
 from .models import Employee, Department
 from .forms import EmployeeForm, DepartmentForm
+from user_management.mixins import ManagerRequiredMixin, EmployeeAccessMixin
 
-class EmployeeListView(LoginRequiredMixin, ListView):
+class EmployeeListView(LoginRequiredMixin, EmployeeAccessMixin, ListView):
     model = Employee
     template_name = 'employees/employee_list.html'
     context_object_name = 'employees'
@@ -18,6 +20,11 @@ class EmployeeListView(LoginRequiredMixin, ListView):
     
     def get_queryset(self):
         queryset = super().get_queryset()
+        
+        # Regular employees can only see themselves
+        if not self.request.user.is_superuser:
+            queryset = queryset.filter(user=self.request.user)
+        
         search_query = self.request.GET.get('search', '')
         
         if search_query:
@@ -53,7 +60,7 @@ class EmployeeListView(LoginRequiredMixin, ListView):
         context['selected_status'] = self.request.GET.get('status', '')
         return context
 
-class EmployeeDetailView(LoginRequiredMixin, DetailView):
+class EmployeeDetailView(LoginRequiredMixin, EmployeeAccessMixin, DetailView):
     model = Employee
     template_name = 'employees/employee_detail.html'
     context_object_name = 'employee'
@@ -68,12 +75,11 @@ class EmployeeDetailView(LoginRequiredMixin, DetailView):
         
         return context
 
-class EmployeeCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class EmployeeCreateView(LoginRequiredMixin, ManagerRequiredMixin, CreateView):
     model = Employee
     form_class = EmployeeForm
     template_name = 'employees/employee_form.html'
     success_url = reverse_lazy('employee_list')
-    permission_required = 'employees.add_employee'
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -83,86 +89,69 @@ class EmployeeCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView
     
     def form_valid(self, form):
         try:
-            employee = form.save(commit=False)
+            # Get form data
+            first_name = form.cleaned_data.get('first_name')
+            last_name = form.cleaned_data.get('last_name')
+            email = form.cleaned_data.get('email')
+            user_link = form.cleaned_data.get('user')
+            is_active = form.cleaned_data.get('is_active', True)
             
-            # Get the user field from the form data or create a new user
-            user_id = self.request.POST.get('user')
-            first_name = self.request.POST.get('first_name', '')
-            last_name = self.request.POST.get('last_name', '')
-            email = self.request.POST.get('email', '')
-            
-            if user_id:
-                employee.user = User.objects.get(id=user_id)
-                # Update the user's email if it has changed
-                if employee.user.email != email:
-                    employee.user.email = email
-                    employee.user.save()
+            # If linking to existing user, use that user
+            if user_link:
+                user = user_link
+                # Update the user's name if it has changed
+                if user.first_name != first_name or user.last_name != last_name:
+                    user.first_name = first_name
+                    user.last_name = last_name
+                    user.save()
             else:
-                # Create a user based on employee information
-                username = email.split('@')[0]
-                # Check if username exists, if so append a random string
-                if User.objects.filter(username=username).exists():
-                    import random, string
-                    random_suffix = ''.join(random.choices(string.digits, k=4))
-                    username = f"{username}_{random_suffix}"
-                
+                # Create a new user account with the provided email
+                username = email  # Use email as username
                 # Generate a random password
-                import random, string
-                password = ''.join(random.choices(string.ascii_letters + string.digits, k=12))
+                password = ''.join([random.choice('abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789') for _ in range(12)])
                 
-                user = User.objects.create_user(
+                # Create the user
+                user = get_user_model().objects.create_user(
                     username=username,
                     email=email,
                     password=password,
                     first_name=first_name,
                     last_name=last_name
                 )
-                employee.user = user
-                
-                # Send email with login credentials
-                from django.core.mail import send_mail
-                from django.conf import settings
-                
-                subject = f"Your {settings.COMPANY_NAME} Account Details"
-                message = f"""
-Hello {first_name} {last_name},
-
-Your account has been created in the {settings.COMPANY_NAME} payroll system.
-
-Username: {username}
-Password: {password}
-
-Please login at {settings.COMPANY_WEBSITE}/accounts/login/ and change your password.
-
-Regards,
-{settings.COMPANY_NAME} HR Team
-                """
-                
-                try:
-                    send_mail(
-                        subject,
-                        message,
-                        settings.DEFAULT_FROM_EMAIL,
-                        [email],
-                        fail_silently=False,
-                    )
-                    messages.success(self.request, f"Login credentials have been sent to {email}")
-                except Exception as e:
-                    messages.warning(self.request, f"Could not send email: {str(e)}")
             
+            # Set the user on the employee instance
+            employee = form.save(commit=False)
+            employee.user = user
+            employee.is_active = is_active
             employee.save()
-            messages.success(self.request, "Employee created successfully.")
-            return redirect(self.success_url)
+            
+            messages.success(self.request, f"Employee {employee} created successfully.")
+            return super().form_valid(form)
         except Exception as e:
             messages.error(self.request, f"Error creating employee: {str(e)}")
-            return super().form_invalid(form)
+            form.add_error(None, f"Error creating employee: {str(e)}")
+            return self.form_invalid(form)
+    
+    def form_invalid(self, form):
+        # Log all form errors for debugging
+        for field, errors in form.errors.items():
+            for error in errors:
+                field_name = field if field != '__all__' else 'General'
+                messages.error(self.request, f"{field_name} error: {error}")
+                
+            # Add is-invalid class to fields with errors
+            if field != '__all__' and field in form.fields:
+                css_class = form.fields[field].widget.attrs.get('class', '')
+                if 'is-invalid' not in css_class:
+                    form.fields[field].widget.attrs['class'] = f"{css_class} is-invalid"
+        
+        return super().form_invalid(form)
 
-class EmployeeUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class EmployeeUpdateView(LoginRequiredMixin, ManagerRequiredMixin, UpdateView):
     model = Employee
     form_class = EmployeeForm
     template_name = 'employees/employee_form.html'
     success_url = reverse_lazy('employee_list')
-    permission_required = 'employees.change_employee'
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -172,42 +161,34 @@ class EmployeeUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView
     
     def form_valid(self, form):
         try:
+            # Get form data
+            first_name = form.cleaned_data.get('first_name')
+            last_name = form.cleaned_data.get('last_name')
+            email = form.cleaned_data.get('email')
+            user_link = form.cleaned_data.get('user')
+            is_active = form.cleaned_data.get('is_active', True)
+            
             employee = form.save(commit=False)
             
-            # Handle user update
-            user_id = self.request.POST.get('user')
-            first_name = self.request.POST.get('first_name', '')
-            last_name = self.request.POST.get('last_name', '')
-            email = self.request.POST.get('email', '')
-            
-            if user_id:
-                # Link to selected user
-                employee.user = User.objects.get(id=user_id)
-                # Update the user's email if it has changed
-                if employee.user.email != email:
-                    employee.user.email = email
-                    employee.user.save()
-            elif employee.user:
-                # Update existing user's name and email
-                employee.user.first_name = first_name
-                employee.user.last_name = last_name
-                if employee.user.email != email:
-                    employee.user.email = email
-                employee.user.save()
-            else:
-                # Create a new user
-                username = email.split('@')[0]
-                # Check if username exists, if so append a random string
-                if User.objects.filter(username=username).exists():
-                    import random, string
-                    random_suffix = ''.join(random.choices(string.digits, k=4))
-                    username = f"{username}_{random_suffix}"
+            # If linking to existing user, use that user
+            if user_link:
+                # Check if this is a change in linked user
+                if employee.user != user_link:
+                    employee.user = user_link
                 
+                # Update the user's name if it has changed
+                if user_link.first_name != first_name or user_link.last_name != last_name:
+                    user_link.first_name = first_name
+                    user_link.last_name = last_name
+                    user_link.save()
+            elif not employee.user:
+                # Create a new user account with the provided email
+                username = email  # Use email as username
                 # Generate a random password
-                import random, string
-                password = ''.join(random.choices(string.ascii_letters + string.digits, k=12))
+                password = ''.join([random.choice('abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789') for _ in range(12)])
                 
-                user = User.objects.create_user(
+                # Create the user
+                user = get_user_model().objects.create_user(
                     username=username,
                     email=email,
                     password=password,
@@ -215,51 +196,44 @@ class EmployeeUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView
                     last_name=last_name
                 )
                 employee.user = user
-                
-                # Send email with login credentials
-                from django.core.mail import send_mail
-                from django.conf import settings
-                
-                subject = f"Your {settings.COMPANY_NAME} Account Details"
-                message = f"""
-Hello {first_name} {last_name},
-
-Your account has been created in the {settings.COMPANY_NAME} payroll system.
-
-Username: {username}
-Password: {password}
-
-Please login at {settings.COMPANY_WEBSITE}/accounts/login/ and change your password.
-
-Regards,
-{settings.COMPANY_NAME} HR Team
-                """
-                
-                try:
-                    send_mail(
-                        subject,
-                        message,
-                        settings.DEFAULT_FROM_EMAIL,
-                        [email],
-                        fail_silently=False,
-                    )
-                    messages.success(self.request, f"Login credentials have been sent to {email}")
-                except Exception as e:
-                    messages.warning(self.request, f"Could not send email: {str(e)}")
+            else:
+                # Update existing user
+                employee.user.first_name = first_name
+                employee.user.last_name = last_name
+                if email:
+                    employee.user.email = email
+                employee.user.save()
             
+            employee.is_active = is_active
             employee.save()
-            messages.success(self.request, "Employee updated successfully.")
-            return redirect(self.success_url)
+            
+            messages.success(self.request, f"Employee {employee} updated successfully.")
+            return super().form_valid(form)
         except Exception as e:
             messages.error(self.request, f"Error updating employee: {str(e)}")
-            return super().form_invalid(form)
+            form.add_error(None, f"Error updating employee: {str(e)}")
+            return self.form_invalid(form)
+    
+    def form_invalid(self, form):
+        # Log all form errors for debugging
+        for field, errors in form.errors.items():
+            for error in errors:
+                field_name = field if field != '__all__' else 'General'
+                messages.error(self.request, f"{field_name} error: {error}")
+                
+            # Add is-invalid class to fields with errors
+            if field != '__all__' and field in form.fields:
+                css_class = form.fields[field].widget.attrs.get('class', '')
+                if 'is-invalid' not in css_class:
+                    form.fields[field].widget.attrs['class'] = f"{css_class} is-invalid"
+        
+        return super().form_invalid(form)
 
-class EmployeeDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class EmployeeDeleteView(LoginRequiredMixin, ManagerRequiredMixin, DeleteView):
     model = Employee
     template_name = 'employees/employee_confirm_delete.html'
     success_url = reverse_lazy('employee_list')
     context_object_name = 'employee'
-    permission_required = 'employees.delete_employee'
     
     def delete(self, request, *args, **kwargs):
         messages.success(request, "Employee deleted successfully.")
@@ -299,12 +273,11 @@ class DepartmentDetailView(LoginRequiredMixin, DetailView):
         context['active_employees_count'] = department_employees.filter(is_active=True).count()
         return context
 
-class DepartmentCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class DepartmentCreateView(LoginRequiredMixin, ManagerRequiredMixin, CreateView):
     model = Department
     form_class = DepartmentForm
     template_name = 'employees/department_form.html'
     success_url = reverse_lazy('department_list')
-    permission_required = 'employees.add_department'
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -313,15 +286,36 @@ class DepartmentCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateVi
         return context
     
     def form_valid(self, form):
-        messages.success(self.request, "Department created successfully.")
-        return super().form_valid(form)
+        try:
+            department = form.save()
+            messages.success(self.request, "Department created successfully.")
+            return super().form_valid(form)
+        except Exception as e:
+            messages.error(self.request, f"Error creating department: {str(e)}")
+            # Add the error to the form for better visibility
+            form.add_error(None, f"Error creating department: {str(e)}")
+            return self.form_invalid(form)
+    
+    def form_invalid(self, form):
+        # Log all form errors for debugging
+        for field, errors in form.errors.items():
+            for error in errors:
+                field_name = field if field != '__all__' else 'General'
+                messages.error(self.request, f"{field_name} error: {error}")
+                
+            # Add is-invalid class to fields with errors
+            if field != '__all__' and field in form.fields:
+                css_class = form.fields[field].widget.attrs.get('class', '')
+                if 'is-invalid' not in css_class:
+                    form.fields[field].widget.attrs['class'] = f"{css_class} is-invalid"
+        
+        return super().form_invalid(form)
 
-class DepartmentUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class DepartmentUpdateView(LoginRequiredMixin, ManagerRequiredMixin, UpdateView):
     model = Department
     form_class = DepartmentForm
     template_name = 'employees/department_form.html'
     success_url = reverse_lazy('department_list')
-    permission_required = 'employees.change_department'
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -330,14 +324,35 @@ class DepartmentUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateVi
         return context
     
     def form_valid(self, form):
-        messages.success(self.request, "Department updated successfully.")
-        return super().form_valid(form)
+        try:
+            department = form.save()
+            messages.success(self.request, "Department updated successfully.")
+            return super().form_valid(form)
+        except Exception as e:
+            messages.error(self.request, f"Error updating department: {str(e)}")
+            # Add the error to the form for better visibility
+            form.add_error(None, f"Error updating department: {str(e)}")
+            return self.form_invalid(form)
+    
+    def form_invalid(self, form):
+        # Log all form errors for debugging
+        for field, errors in form.errors.items():
+            for error in errors:
+                field_name = field if field != '__all__' else 'General'
+                messages.error(self.request, f"{field_name} error: {error}")
+                
+            # Add is-invalid class to fields with errors
+            if field != '__all__' and field in form.fields:
+                css_class = form.fields[field].widget.attrs.get('class', '')
+                if 'is-invalid' not in css_class:
+                    form.fields[field].widget.attrs['class'] = f"{css_class} is-invalid"
+        
+        return super().form_invalid(form)
 
-class DepartmentDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class DepartmentDeleteView(LoginRequiredMixin, ManagerRequiredMixin, DeleteView):
     model = Department
     template_name = 'employees/department_confirm_delete.html'
     success_url = reverse_lazy('department_list')
-    permission_required = 'employees.delete_department'
     
     def post(self, request, *args, **kwargs):
         department = self.get_object()
